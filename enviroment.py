@@ -1,7 +1,7 @@
 import numpy as np
 import gym
 from gym import spaces
-from scipy.signal import freqz
+from scipy.signal import freqz, csd
 from scipy.fft import fft, fftfreq
 import matplotlib.pyplot as plt
 import librosa
@@ -31,8 +31,9 @@ class AllPassFilterEnv(gym.Env):
             self.visualisation = FilterVisualisation("Filter Response", show_phase=True, show_mag=False)
 
         # Define action and observation spaces
-        self.action_space = spaces.Box(low=np.array([20, 0.1], dtype=np.float32),
-                                       high=np.array([800, 10], dtype=np.float32), dtype=np.float32)
+        self.action_space = spaces.Box(low=np.array([20, 0.1]*5, dtype=np.float32),
+                               high=np.array([800, 10]*5, dtype=np.float32), dtype=np.float32)
+        
         self.observation_space = spaces.Box(low=np.array([-360, -100], dtype=np.float32),
                                             high=np.array([360, 100], dtype=np.float32), dtype=np.float32)
                 
@@ -41,7 +42,7 @@ class AllPassFilterEnv(gym.Env):
     def step(self, action):
         # Update frequency and q values based on the action
         for i, filter_ in enumerate(self.filters):
-            filter_.frequency, filter_.q = action[i]
+            filter_.frequency, filter_.q = action[i], action[i]
         
         filtered_sig = self.filters.process(self.input_sig)
 
@@ -82,7 +83,7 @@ class AllPassFilterEnv(gym.Env):
 
         self.render()
 
-        return np.array()
+        return self.observation_space
 
     def render(self, mode='text',  **kwargs):
 
@@ -109,9 +110,6 @@ if __name__ == "__main__":
 
     env = AllPassFilterEnv(INPUT, TARGET, FS)
     obs = env.reset()
-    print("Initial Observation:")
-    print(obs)
-    env.render()
 
     # Test with some actions
     actions = [
