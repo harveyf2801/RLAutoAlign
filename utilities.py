@@ -2,6 +2,16 @@ import numpy as np
 import librosa
 import pywt
 
+def get_rms_decibels(signal, reference=1.0):
+    '''
+    Returns the root mean square (RMS) level of the signal in decibels.
+    '''
+    # Calculate the root mean square (RMS) level of the signal
+    rms = np.sqrt(np.mean(signal ** 2))
+
+    # Calculate decibel level
+    return 20 * np.log10(rms / reference)
+
 def auto_polarity_detection(signal, ref_signal):
     '''
     Auto polarity detection using decibel RMS level comparison.
@@ -11,18 +21,14 @@ def auto_polarity_detection(signal, ref_signal):
     reference = 1.0
 
     # Calculate the root mean square (RMS) decibel level of the signals before polarity inversion
-    rms_before = np.sqrt(np.mean(signal + ref_signal ** 2))
-    
-    # Calculate decibel level
-    db_before = 20 * np.log10(rms_before / reference)
+    db_before = get_rms_decibels(signal+ref_signal, reference)
 
     # Invert the polarity of signal
     # Calculate the RMS decibel level of the signals after polarity inversion
-    power_after = np.sqrt(np.mean((-signal) + ref_signal ** 2))
-    db_after = 20 * np.log10(power_after / reference)
+    db_after = get_rms_decibels((-signal)+ref_signal, reference)
 
     # Compare the decibel levels and return the polarity detection result
-    return db_before >= db_after
+    return db_before < db_after
 
 def get_magnitude_and_phase_stft(signal,
         fft_size=1024,

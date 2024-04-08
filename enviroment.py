@@ -1,15 +1,16 @@
 import numpy as np
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 from scipy.signal import freqz, csd
 from scipy.fft import fft, fftfreq
 import matplotlib.pyplot as plt
 import librosa
 
+from utilities import get_rms_decibels, get_magnitude_and_phase_stft
 
 from Filters.AllPassBand import AllPassBand
 from Filters.FilterChain import FilterChain
-from Filters.FilterVisualisation import FilterVisualisation
+from Visualisation import Visualisation
 
 
 class AllPassFilterEnv(gym.Env):
@@ -19,16 +20,16 @@ class AllPassFilterEnv(gym.Env):
         self.fs = fs
         self.input_sig = input_sig
         self.target_sig = target_sig
-
-        self.audio_len = len(self.target_sig)
-        self.original_rms = np.mean(librosa.feature.rms(y=(0.5*self.input_sig)+(0.5*self.target_sig)))
+        
+        self.original_rms = get_rms_decibels(self.input_sig+self.target_sig)
         self.reward = 0
 
         band_frequencies = [100, 300, 500, 700, 900]  # Center frequencies of the bands (Hz)
         self.filters = FilterChain([AllPassBand(freq, 0.1, self.fs) for freq in band_frequencies])
 
-        if (plotting_visuals):
-            self.visualisation = FilterVisualisation("Filter Response", show_phase=True, show_mag=False)
+        self.plotting_visuals = plotting_visuals
+        if (self.plotting_visuals):
+            self.visualisation = Visualisation("DRL Visuals", show_phase=True, show_mag=False)
 
         # Define action and observation spaces
         self.action_space = spaces.Box(low=np.array([20, 0.1]*5, dtype=np.float32),
@@ -42,32 +43,28 @@ class AllPassFilterEnv(gym.Env):
     def step(self, action):
         # Update frequency and q values based on the action
         for i, filter_ in enumerate(self.filters):
-            filter_.frequency, filter_.q = action[i], action[i]
+            filter_.frequency, filter_.q = action[i][0], action[i][1]
         
         filtered_sig = self.filters.process(self.input_sig)
 
-        # Calculate phase and magnitude differences
-        
-        # Get an FFT of both signals
-        FFT_target = fft(self.target_sig, n=self.audio_len)
-        FFT_filtered = fft(filtered_sig, n=self.audio_len)
+        # Get the magnitude and phase (rad) of both signals
+        T_mag, T_phase = get_magnitude_and_phase_stft(self.target_sig)
+        X_mag, X_phase = get_magnitude_and_phase_stft(filtered_sig)
 
-        # Compute the phase difference for observation space
-        phase_diff = np.angle(FFT_filtered, deg=True) - np.angle(FFT_target, deg=True)
+        # Compute the phase difference and magnitude sum for observation space
+        phase_diff = X_phase - T_phase
+        mag_sum = X_mag + T_mag
 
-        summed_sig = (0.5*self.target_sig)+(0.5*filtered_sig)
-
-        # Compute dB  single sided FFT values for the observation space
-        FFT_current = fft(summed_sig, n=self.audio_len)
-        FFT_current = 20*np.log10(2.0/self.audio_len * np.abs(FFT_current))#[:self.audio_len//2]))
+        # Compute dB single sided FFT values for the observation space
+        db_sum = librosa.core.amplitude_to_db((mag_sum)**2, ref=np.max)
 
         # Compute the rms difference for the reward
-        rms = np.mean(librosa.feature.rms(y=summed_sig))
+        rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
 
         # Return a placeholder observation and reward
         # states = np.array([[filter_.frequency, filter_.q] for filter_ in self.filters])
-        obs = np.vstack((phase_diff, FFT_current)).T
+        obs = np.vstack((phase_diff, db_sum)).T
         done = False
         info = {"RMS": rms, "Reward": self.reward}
 
@@ -87,7 +84,7 @@ class AllPassFilterEnv(gym.Env):
 
     def render(self, mode='text',  **kwargs):
 
-        if mode == 'graph':
+        if mode == 'graph_filters':
             self.visualisation.render(self.filters)
 
         if mode == 'text':
@@ -98,17 +95,25 @@ class AllPassFilterEnv(gym.Env):
             print("_"*8)
 
     def close(self):
-        pass
+        if self.plotting_visuals:
+            self.visualisation.close()
 
 # Test the environment
 if __name__ == "__main__":
 
     from pathlib import Path
+    from utilities import auto_polarity_detection
 
     INPUT, FS = librosa.load(Path(f"soundfiles/KickStemIn.wav"), mono=True, sr=None)
     TARGET, FS = librosa.load(Path(f"soundfiles/KickStemOut.wav"), mono=True, sr=None)
 
-    env = AllPassFilterEnv(INPUT, TARGET, FS)
+    # Check the polarity of the audio files
+    POL_INVERT = auto_polarity_detection(INPUT, TARGET)
+    print("The polarity of the input signal",
+        "needs" if POL_INVERT else "does not need",
+        "to be inverted.")
+
+    env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS)
     obs = env.reset()
 
     # Test with some actions

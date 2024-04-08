@@ -53,6 +53,7 @@ plt.subplot(2,1,1)
 librosa.display.specshow(librosa.core.amplitude_to_db(mag_sum**2, ref=np.max), y_axis='log', sr=FS)
 plt.title('log STFT power')
 plt.colorbar()
+plt.show()
 
 # plt.subplot(2,1,2)
 # librosa.display.specshow(librosa.core.amplitude_to_db(mag_sum_2**2, ref=np.max), y_axis='log', sr=FS)
@@ -67,3 +68,4 @@ plt.colorbar()
 # #%%
 # sd.play(((INPUT*-1)*0.5) + (TARGET*0.5), FS)
 # sd.wait()
+# %%
