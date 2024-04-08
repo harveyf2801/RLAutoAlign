@@ -2,66 +2,60 @@ import numpy as np
 import librosa
 import pywt
 
-def auto_polarity_detection(signal1, signal2):
+def auto_polarity_detection(signal, ref_signal):
     '''
-    Auto polarity detection using summed signal comparison.
-
-    Method 1:
-        Compare the summed signal before and after polarity inversion.
+    Auto polarity detection using decibel RMS level comparison.
+    Returns True if polarity inversion is needed.
     '''
-    # Calculate the sum of the signals before polarity inversion
-    sum_before = np.sum(signal1 + signal2)
+    # Reference value for decibel calculation
+    reference = 1.0
 
-    # Invert the polarity of signal2
-    # Calculate the sum of the signals after polarity inversion
-    sum_after = np.sum(signal1 + (-signal2))
+    # Calculate the root mean square (RMS) decibel level of the signals before polarity inversion
+    rms_before = np.sqrt(np.mean(signal + ref_signal ** 2))
+    
+    # Calculate decibel level
+    db_before = 20 * np.log10(rms_before / reference)
 
-    # Compare the sums and return the polarity detection result
-    return sum_before >= sum_after
+    # Invert the polarity of signal
+    # Calculate the RMS decibel level of the signals after polarity inversion
+    power_after = np.sqrt(np.mean((-signal) + ref_signal ** 2))
+    db_after = 20 * np.log10(power_after / reference)
 
-def auto_polarity_detection2(signal1, signal2):
-    '''
-    Auto polarity detection using cross-correlation.
+    # Compare the decibel levels and return the polarity detection result
+    return db_before >= db_after
 
-    Method 2:
-        Compare the maximum cross-correlation before and after polarity inversion.
-    '''
-    # Calculate the cross-correlation of the signals before polarity inversion
-    cross_correlation_before = np.correlate(signal1, signal2, mode='full')
-
-    # Calculate the cross-correlation of the signals after polarity inversion
-    cross_correlation_after = np.correlate(signal1, -signal2, mode='full')
-
-    # Find the maximum value in the cross-correlation before and after polarity inversion
-    max_cross_correlation_before = np.max(cross_correlation_before)
-    max_cross_correlation_after = np.max(cross_correlation_after)
-
-    # Compare the maximum cross-correlation values and return the polarity detection result
-    return max_cross_correlation_before >= max_cross_correlation_after
-
-def get_magnitude_and_phase(signal):
+def get_magnitude_and_phase_stft(signal,
+        fft_size=1024,
+        hop_size=256,
+        win_length=1024,
+        window="hann",
+        eps=1e-8):
     '''
     Returns the magnitude and phase of the spectrogram of the audio signal.
     '''
     # Compute the spectrogram of the audio file
-    D = librosa.stft(signal)
+    x_stft = librosa.stft(signal,
+                            n_fft=fft_size,
+                            hop_length=hop_size,
+                            window=window)
 
     # Separate magnitude and phase
-    magnitude = np.abs(D)
-    phase = np.unwrap(np.angle(D), axis=1)
+    # For magnitude ...
+    # (The np.abs function internally performs the same operation,
+    # without clipping. This expression ensures values are no less than eps.)
+    x_mag = np.sqrt(np.clip((np.real(x_stft) ** 2) + (np.imag(x_stft) ** 2), a_min=eps, a_max=None))
+    x_phase = np.unwrap(np.angle(x_stft), axis=1)
 
-    return magnitude, phase
+    return x_mag, x_phase
 
-def get_magnitude_and_phase_wavelet(signal):
+def get_magnitude_and_phase_mrstft(signal,
+        fft_sizes=[1024, 512, 2048],
+        hop_sizes=[120, 50, 240],
+        win_lengths=[600, 240, 1200],
+        window="hann"):
     '''
-    Returns the magnitude and phase of the Continuous Wavelet Transform (CWT) of the audio signal.
+    Returns the magnitude and phase of the multi-resolution spectrogram of the audio signal.
     '''
-    # Compute the Continuous Wavelet Transform (CWT) of the audio file
-    widths = np.arange(1, 31)
-    cwtmatr, freqs = pywt.cwt(signal, widths, 'morl')
+    assert len(fft_sizes) == len(hop_sizes) == len(win_lengths)  # must define all
 
-    # Separate magnitude and phase
-    magnitude = np.abs(cwtmatr)
-    phase = np.unwrap(np.angle(cwtmatr), axis=1)
-
-    return magnitude, phase
+    pass
