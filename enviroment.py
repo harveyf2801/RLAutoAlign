@@ -120,7 +120,7 @@ class AllPassFilterEnv(gym.Env):
         # Compute the rms difference for the reward
         rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
-        terminated = self.reward > 4 # if the reward is over 4dB RMS, the episode is done
+        terminated = self.reward > 0 # if the reward is over 4dB RMS, the episode is done
 
         self.render()
 
@@ -165,15 +165,22 @@ class AllPassFilterEnv(gym.Env):
 
 def register_env():
     from gymnasium.envs.registration import register
-
+    # Example for the CartPole environment
     register(
+        # unique identifier for the env `name-version`
         id="AllPassFilterEnv-v0",
-        entry_point="envs:AllPassFilterEnv",
+        # path to the class for creating the env
+        # Note: entry_point also accept a class as input (and not only a string)
+        entry_point="gym.envs.classic_control:AllPassFilterEnv",
+        # Max number of steps per episode, using a `TimeLimitWrapper`
         max_episode_steps=1000,
     )
 
+def check_gym_env():
+    from stable_baselines3.common.env_checker import check_env
 
-
+    # It will check your custom environment and output additional warnings if needed
+    check_env(env)
 
 # Test the environment
 if __name__ == "__main__":
@@ -191,12 +198,7 @@ if __name__ == "__main__":
         "to be inverted.")
 
     env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='text')
-
-    from stable_baselines3.common.env_checker import check_env
-
-    # It will check your custom environment and output additional warnings if needed
-    check_env(env)
-
+    
     # obs, info = env.reset()
 
     # # Test with some actions

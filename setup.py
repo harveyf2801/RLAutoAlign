@@ -11,6 +11,7 @@ def install_packages():
         'numpy',
         'scipy',
         'librosa',
+        'sounddevice',
         # Add more packages here
     ]
 
