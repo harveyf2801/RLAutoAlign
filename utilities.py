@@ -1,6 +1,5 @@
 import numpy as np
 import librosa
-import pywt
 
 def get_rms_decibels(signal, reference=1.0):
     '''
@@ -63,7 +62,7 @@ def get_magnitude_and_phase_stft(signal,
     # (The np.abs function internally performs the same operation,
     # without clipping. This expression ensures values are no less than eps.)
     x_mag = np.sqrt(np.clip((np.real(x_stft) ** 2) + (np.imag(x_stft) ** 2), a_min=eps, a_max=None))
-    x_phase = np.angle(x_stft)
+    x_phase = unwrap(np.angle(x_stft), dim=1)
 
     return x_mag, x_phase
 
@@ -76,5 +75,5 @@ def get_magnitude_and_phase_mrstft(signal,
     Returns the magnitude and phase of the multi-resolution spectrogram of the audio signal.
     '''
     assert len(fft_sizes) == len(hop_sizes) == len(win_lengths)  # must define all
-
+    raise NotImplementedError
     pass

@@ -10,6 +10,28 @@ from utilities import get_magnitude_and_phase_stft, auto_polarity_detection, unw
 INPUT, FS = librosa.load(Path(f"soundfiles/KickStemIn.wav"), mono=True, sr=None)
 TARGET, FS = librosa.load(Path(f"soundfiles/KickStemOut.wav"), mono=True, sr=None)
 
+INPUT = INPUT[:44100 * 2]
+TARGET = TARGET[:44100 * 2]
+
+signal_length = len(INPUT)
+fft_size=1024
+hop_size=256
+win_length=1024
+
+# Calculate the number of windows
+num_windows = 1 + (signal_length - win_length) // hop_size
+if (signal_length - win_length) % hop_size != 0:
+    num_windows += 1
+
+# Add 3 to account for padding at the beginning and end of the signal
+num_windows += 3
+
+# The number of frequency bins is half the window size plus one
+num_freq_bins = win_length // 2 + 1
+
+# The shape of the magnitude and phase arrays is (num_windows, num_freq_bins)
+print(num_freq_bins, num_windows)
+
 # Check the polarity of the audio files
 POL_INVERT = auto_polarity_detection(INPUT, TARGET)
 print("The polarity of the input signal",
@@ -23,12 +45,12 @@ print("The polarity of the input signal",
 S_INPUT, phi_INPUT = get_magnitude_and_phase_stft(-INPUT if POL_INVERT else INPUT)
 S_TARGET, phi_TARGET = get_magnitude_and_phase_stft(TARGET)
 
-phi_INPUT = unwrap(phi_INPUT, dim=1)
-phi_TARGET = unwrap(phi_TARGET, dim=1)
-
 # Compute the phase difference between the two audio files
 mag_sum = S_INPUT + S_TARGET
 phi_diff = phi_INPUT - phi_TARGET
+
+print(mag_sum.shape)
+print(phi_diff.shape)
 
 #%%
 # Plot the phase difference
