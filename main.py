@@ -7,3 +7,11 @@
 # https://github.com/TianhongDai/reinforcement-learning-algorithms provides
 # a variety of DRL algorithms to choose from.
 
+import numpy as np
+
+phase_diff = np.array([1, 2, 3])
+mag_sum = np.array([6, 7, 8])
+
+result = np.column_stack((phase_diff, mag_sum))
+
+print(result)

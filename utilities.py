@@ -30,6 +30,19 @@ def auto_polarity_detection(signal, ref_signal):
     # Compare the decibel levels and return the polarity detection result
     return db_before < db_after
 
+def unwrap(phi, dim=1):
+    dphi = np.diff(phi, axis=dim)
+    pad_shape = list(dphi.shape)
+    pad_shape[dim] = 1
+    dphi = np.pad(dphi, [(0, 0)]*dim + [(1, 0)] + [(0, 0)]*(phi.ndim-dim-1))
+
+    dphi_m = ((dphi + np.pi) % (2 * np.pi)) - np.pi
+    dphi_m[(dphi_m == -np.pi) & (dphi > 0)] = np.pi
+    phi_adj = dphi_m - dphi
+    phi_adj[np.abs(dphi) < np.pi] = 0
+
+    return phi + np.cumsum(phi_adj, axis=dim)
+
 def get_magnitude_and_phase_stft(signal,
         fft_size=1024,
         hop_size=256,
@@ -50,7 +63,7 @@ def get_magnitude_and_phase_stft(signal,
     # (The np.abs function internally performs the same operation,
     # without clipping. This expression ensures values are no less than eps.)
     x_mag = np.sqrt(np.clip((np.real(x_stft) ** 2) + (np.imag(x_stft) ** 2), a_min=eps, a_max=None))
-    x_phase = np.unwrap(np.angle(x_stft), axis=1)
+    x_phase = np.angle(x_stft)
 
     return x_mag, x_phase
 

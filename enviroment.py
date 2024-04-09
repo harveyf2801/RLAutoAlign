@@ -23,6 +23,7 @@ class AllPassFilterEnv(gym.Env):
         
         self.original_rms = get_rms_decibels(self.input_sig+self.target_sig)
         self.reward = 0
+        self.reward_range = (-80, 80)
 
         band_frequencies = [100, 300, 500, 700, 900]  # Center frequencies of the bands (Hz)
         self.filters = FilterChain([AllPassBand(freq, 0.1, self.fs) for freq in band_frequencies])
@@ -35,10 +36,10 @@ class AllPassFilterEnv(gym.Env):
         self.action_space = spaces.Box(low=np.array([20, 0.1]*5, dtype=np.float32),
                                high=np.array([800, 10]*5, dtype=np.float32), dtype=np.float32)
         
-        self.observation_space = spaces.Box(low=np.array([-360, -100], dtype=np.float32),
-                                            high=np.array([360, 100], dtype=np.float32), dtype=np.float32)
-                
-                # Observation space could be phase difference analysis?
+        self.observation_space = spaces.Dict({
+        'phase_diff': spaces.Box(low=-np.pi, high=np.pi, shape=(len(band_frequencies),), dtype=np.float32),
+        'db_sum': spaces.Box(low=-80, high=0, shape=(len(band_frequencies),), dtype=np.float32)
+        })
 
     def step(self, action):
         # Update frequency and q values based on the action
@@ -63,9 +64,8 @@ class AllPassFilterEnv(gym.Env):
         self.reward = rms - self.original_rms
 
         # Return a placeholder observation and reward
-        # states = np.array([[filter_.frequency, filter_.q] for filter_ in self.filters])
-        obs = np.vstack((phase_diff, db_sum)).T
-        done = False
+        obs = {'phase_diff': phase_diff, 'db_sum': db_sum}
+        done = self.reward < 0 # if the reward is negative, the episode is done
         info = {"RMS": rms, "Reward": self.reward}
 
         self.render()
@@ -123,7 +123,5 @@ if __name__ == "__main__":
     ]
 
     for action in actions:
-        obs, _, _, _ = env.step(action)
         print("Observation after action:")
-        print(np.max(obs))
-        env.render()
+        obs, _, _, _ = env.step(action)
