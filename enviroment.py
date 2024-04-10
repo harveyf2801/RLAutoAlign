@@ -171,12 +171,12 @@ def register_env():
         id="AllPassFilterEnv-v0",
         # path to the class for creating the env
         # Note: entry_point also accept a class as input (and not only a string)
-        entry_point="gym.envs.classic_control:AllPassFilterEnv",
+        entry_point="gym.envs.harveyf2801:AllPassFilterEnv",
         # Max number of steps per episode, using a `TimeLimitWrapper`
-        max_episode_steps=1000,
+        max_episode_steps=100_000,
     )
 
-def check_gym_env():
+def check_gym_env(env):
     from stable_baselines3.common.env_checker import check_env
 
     # It will check your custom environment and output additional warnings if needed
@@ -197,8 +197,10 @@ if __name__ == "__main__":
         "needs" if POL_INVERT else "does not need",
         "to be inverted.")
 
-    env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='text')
+    env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='graph_filters')
     
+    check_gym_env(env)
+
     # obs, info = env.reset()
 
     # # Test with some actions

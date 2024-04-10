@@ -23,7 +23,7 @@ class FilterBand(ABC):
         """
 
         # Initialize filter coefficients
-        self._a = np.zeros(order + 1)
+        self._a = np.ones(order + 1)
         self._b = self.a
 
         # Assign parameters
@@ -152,11 +152,11 @@ class FilterBand(ABC):
 
     @property
     def a(self):
-        return self._a
+        return self._a/self._a[0]
 
     @property
     def b(self):
-        return self._b
+        return self._b/self._a[0]
 
     @abstractmethod
     def _calculate_coefficients(self):

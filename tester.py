@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     import librosa
     from pathlib import Path
-    from utilities import auto_polarity_detection
+    from utilities import auto_polarity_detection, get_rms_decibels
     from Filters.FilterChain import FilterChain
     from Filters.AllPassBand import AllPassBand
     import sounddevice as sd
@@ -40,9 +40,15 @@ if __name__ == "__main__":
     visuals.show_mag = True
     visuals.render(filter_chain)
 
-    sd.play((INPUT*0.5) + (TARGET*0.5))
-    sd.wait()
+    before_sig = (-INPUT*0.5) + (TARGET*0.5)
+    after_sig = (filtered_sig*0.5) + (TARGET*0.5)
 
-    sd.play((filtered_sig*0.5) + (TARGET*0.5))
-    sd.wait()
+    print(get_rms_decibels(filtered_sig) - get_rms_decibels(-INPUT))
+    print(get_rms_decibels(after_sig), get_rms_decibels(before_sig))
+
+    # sd.play(before_sig)
+    # sd.wait()
+
+    # sd.play(after_sig)
+    # sd.wait()
 

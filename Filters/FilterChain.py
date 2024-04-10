@@ -35,7 +35,7 @@ class FilterChain:
         Get the phase response of the filter.
         """
         w, h = self.get_response()
-        return w, np.angle(h, deg=True)
+        return w, np.unwrap(np.angle(h, deg=True))
     
     @property
     def magnitude_response(self):

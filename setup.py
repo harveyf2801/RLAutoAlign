@@ -12,6 +12,7 @@ def install_packages():
         'scipy',
         'librosa',
         'sounddevice',
+        #'stable-baselines3',
         # Add more packages here
     ]
 
