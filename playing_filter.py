@@ -7,9 +7,9 @@
 filters_ = [
     {'frequency': 119.94433004914043, 'q': 2.0563879963594},
     {'frequency': 381.9943935728577,  'q': 8.452033827496694},
-    {'frequency': 71.65568778735842,  'q': 0.7803688164440915},
-    {'frequency': 528.5787750903811,  'q': 9.068195883400865},
-    {'frequency': 433.57931550220536, 'q': 8.58292949477177}
+    # {'frequency': 71.65568778735842,  'q': 0.7803688164440915},
+    # {'frequency': 528.5787750903811,  'q': 9.068195883400865},
+    # {'frequency': 433.57931550220536, 'q': 8.58292949477177}
 ]
 
 # Test the environment
@@ -46,9 +46,9 @@ if __name__ == "__main__":
     print(get_rms_decibels(filtered_sig) - get_rms_decibels(-INPUT))
     print(get_rms_decibels(after_sig), get_rms_decibels(before_sig))
 
-    # sd.play(before_sig)
-    # sd.wait()
+    sd.play(before_sig)
+    sd.wait()
 
-    # sd.play(after_sig)
-    # sd.wait()
+    sd.play(after_sig)
+    sd.wait()
 

@@ -14,7 +14,7 @@ from Visualisation import Visualisation
 
 
 class AllPassFilterEnv(gym.Env):
-    metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 4}
+    metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
 
     def __init__(self, input_sig, target_sig, fs, render_mode='text', seed=1, device=None):
         super(AllPassFilterEnv, self).__init__()
@@ -120,12 +120,12 @@ class AllPassFilterEnv(gym.Env):
         # Compute the rms difference for the reward
         rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
-        terminated = self.reward > 0 # if the reward is over 4dB RMS, the episode is done
+        # terminated = self.reward > 10 # if the reward is over 4dB RMS, the episode is done
 
         self.render()
 
         # observation, reward, terminated, False, info
-        return self._get_obs(filtered_sig), self.reward, bool(terminated), False, self._get_info()
+        return self._get_obs(filtered_sig), self.reward, False, False, self._get_info()
 
     def reset(self, seed=None, options=None):
         # To seed self.np_random
@@ -161,21 +161,6 @@ class AllPassFilterEnv(gym.Env):
         if self.render_mode != 'text':
             self.visualisation.close()
 
-
-
-def register_env():
-    from gymnasium.envs.registration import register
-    # Example for the CartPole environment
-    register(
-        # unique identifier for the env `name-version`
-        id="AllPassFilterEnv-v0",
-        # path to the class for creating the env
-        # Note: entry_point also accept a class as input (and not only a string)
-        entry_point="gym.envs.harveyf2801:AllPassFilterEnv",
-        # Max number of steps per episode, using a `TimeLimitWrapper`
-        max_episode_steps=100_000,
-    )
-
 def check_gym_env(env):
     from stable_baselines3.common.env_checker import check_env
 
@@ -199,7 +184,7 @@ if __name__ == "__main__":
 
     env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='graph_filters')
     
-    check_gym_env(env)
+    print(env.reset()[0])
 
     # obs, info = env.reset()
 

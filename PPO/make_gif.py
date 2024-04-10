@@ -7,8 +7,8 @@ import torch
 import numpy as np
 from PIL import Image
 
-import gym
-import roboschool
+import gymnasium as gym
+import enviroment
 
 from PPO import PPO
 
@@ -31,7 +31,7 @@ then the saved images will be overwritten.
 ############################# save images for gif ##############################
 
 
-def save_gif_images(env_name, has_continuous_action_space, max_ep_len, action_std):
+def save_gif_images(env, env_name, has_continuous_action_space, max_ep_len, action_std):
 	print("============================================================================================")
 
 	total_test_episodes = 1     # save gif for only one episode
@@ -42,7 +42,7 @@ def save_gif_images(env_name, has_continuous_action_space, max_ep_len, action_st
 	lr_actor = 0.0003         # learning rate for actor
 	lr_critic = 0.001         # learning rate for critic
 
-	env = gym.make(env_name)
+	# env = gym.make(env_name)
 
 	# state space dimension
 	state_dim = env.observation_space.shape[0]
@@ -200,7 +200,21 @@ if __name__ == '__main__':
 	# max_ep_len = 1000           # max timesteps in one episode
 	# action_std = 0.1            # set same std for action distribution which was used while saving
 
-	env_name = "RoboschoolHalfCheetah-v1"
+	env_name = "AllPassFilterEnv-v0"
+
+	from pathlib import Path
+	import librosa
+	from utilities import auto_polarity_detection
+
+	INPUT, FS = librosa.load(Path(f"../soundfiles/KickStemIn.wav"), mono=True, sr=None)
+	TARGET, FS = librosa.load(Path(f"../soundfiles/KickStemOut.wav"), mono=True, sr=None)
+
+	# Check the polarity of the audio files
+	POL_INVERT = auto_polarity_detection(INPUT, TARGET)
+	print("The polarity of the input signal",
+		"needs" if POL_INVERT else "does not need",
+		"to be inverted.")
+	env = gym.make(env_name, input_sig=-INPUT if POL_INVERT else INPUT, target_sig=TARGET, fs=FS, render_mode='text')
 	has_continuous_action_space = True
 	max_ep_len = 1000           # max timesteps in one episode
 	action_std = 0.1            # set same std for action distribution which was used while saving
@@ -211,7 +225,7 @@ if __name__ == '__main__':
 	# action_std = 0.1            # set same std for action distribution which was used while saving
 
 	# save .jpg images in PPO_gif_images folder
-	save_gif_images(env_name, has_continuous_action_space, max_ep_len, action_std)
+	save_gif_images(env, env_name, has_continuous_action_space, max_ep_len, action_std)
 
 	# save .gif in PPO_gifs folder using .jpg images
 	save_gif(env_name)
