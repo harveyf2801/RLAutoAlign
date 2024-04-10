@@ -22,6 +22,7 @@ class AllPassFilterEnv(gym.Env):
         self.device = device
 
         self.seed = seed # Set the seed for reproducibility
+        self.steps = 0
 
         self.fft_size=1024
         self.hop_size=256
@@ -48,14 +49,19 @@ class AllPassFilterEnv(gym.Env):
 
         # Define action and observation spaces
         self.action_space = spaces.Box(low=np.array([(20, 0.1)]*5, dtype=np.float32),
-                               high=np.array([(800, 10)]*5, dtype=np.float32), shape=(5, 2), dtype=np.float32)
+                                        high=np.array([(800, 10)]*5, dtype=np.float32),
+                                        shape=(5, 2), dtype=np.float32)
         
         obs_shape = self._get_observation_size()
 
-        self.observation_space = spaces.Dict({
-        'phase_diff': spaces.Box(low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float64),
-        'db_sum': spaces.Box(low=-80, high=0, shape=obs_shape, dtype=np.float64)
-        })
+        self.observation_space = spaces.Box(low=-np.inf,
+                                            high=np.inf,
+                                            shape=(2, obs_shape[0]*obs_shape[1]),
+                                            dtype=np.float64)
+        # spaces.Dict({
+        # 'phase_diff': spaces.Box(low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float64),
+        # 'db_sum': spaces.Box(low=-80, high=0, shape=obs_shape, dtype=np.float64)
+        # })
 
         self.current_obs = None
     
@@ -104,7 +110,7 @@ class AllPassFilterEnv(gym.Env):
 
         # Return a placeholder observation and reward
         self.current_obs = {'phase_diff': phase_diff, 'db_sum': db_sum}
-        return self.current_obs
+        return np.array([phase_diff.ravel(), mag_sum.ravel()])
 
     def _get_info(self):
         info = {}
@@ -120,12 +126,14 @@ class AllPassFilterEnv(gym.Env):
         # Compute the rms difference for the reward
         rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
-        # terminated = self.reward > 10 # if the reward is over 4dB RMS, the episode is done
+        terminated = bool(self.reward > 20) # if the reward is over 10dB RMS, the episode is done
+        truncated = bool(self.steps > 100_000) # if the steps reach 100,000 / max steps
 
         self.render()
+        self.steps += 1
 
         # observation, reward, terminated, False, info
-        return self._get_obs(filtered_sig), self.reward, False, False, self._get_info()
+        return self._get_obs(filtered_sig), self.reward, terminated, truncated, self._get_info()
 
     def reset(self, seed=None, options=None):
         # To seed self.np_random
@@ -149,6 +157,7 @@ class AllPassFilterEnv(gym.Env):
             for index, filter_ in enumerate(self.filters):
                 print(f"Filter {index}: frequency={filter_.frequency}, q={filter_.q}")
             print(f"RMS Difference: {self.reward}")
+            print(f"Step: {self.steps}")
             print("_"*8)
         
         elif self.render_mode == 'graph_filters':
@@ -182,10 +191,9 @@ if __name__ == "__main__":
         "needs" if POL_INVERT else "does not need",
         "to be inverted.")
 
-    env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='graph_filters')
-    obs, info = env.reset()
+    env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='text')
 
-    # print(np.array((obs['phase_diff'], obs['db_sum'])).shape)
+    check_gym_env(env)
 
     # obs, info = env.reset()
 

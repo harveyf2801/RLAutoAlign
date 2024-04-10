@@ -56,8 +56,8 @@ params = {
 
 vec_env = gym.make(id='AllPassFilterEnv-v0', **params)
 
-model = PPO("MultiInputPolicy", vec_env, verbose=1)
-model.learn(total_timesteps=10)
+model = PPO("MlpPolicy", vec_env, verbose=1)
+model.learn(total_timesteps=100_000)
 model.save("ppo_apf")
 
 print("*"*8, "DONE", "*"*8)
@@ -67,7 +67,7 @@ del model # remove to demonstrate saving and loading
 model = PPO.load("ppo_apf")
 
 obs = vec_env.reset()
-while True:
+for i in range(3):
     action, _states = model.predict(obs)
     obs, rewards, dones, info = vec_env.step(action)
     vec_env.render("text")
