@@ -8,7 +8,7 @@ import numpy as np
 
 import gymnasium as gym
 
-from PPO import PPO
+from PPO.PPO import PPO
 
 from gymnasium.envs.registration import register
 from enviroment import AllPassFilterEnv
