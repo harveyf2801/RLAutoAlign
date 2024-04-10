@@ -80,7 +80,6 @@ def train():
         "to be inverted.")
 
     env = gym.make(env_name, input_sig=-INPUT if POL_INVERT else INPUT, target_sig=TARGET, fs=FS, render_mode='text', seed=random_seed)
-    env.reset()
 
     # env = gym.make(env_name)
 

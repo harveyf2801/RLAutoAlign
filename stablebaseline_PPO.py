@@ -13,10 +13,24 @@ import gymnasium as gym
 from stable_baselines3 import PPO, A2C
 from stable_baselines3.common.env_util import make_vec_env
 
+from gymnasium.envs.registration import register
 from enviroment import AllPassFilterEnv
 
+# Registering custom enviroment
+register(
+    # Unique identifier for the env `name-version`
+    id="AllPassFilterEnv-v0",
+    # Path to the class for creating the env
+    # Note: entry_point also accept a class as input (and not only a string)
+    entry_point='enviroment:AllPassFilterEnv',
+    # Max number of steps per episode, using a `TimeLimitWrapper`
+    max_episode_steps=100_000,
+    # Keyword args for constructor
+    kwargs={'input_sig': None, 'target_sig': None, 'fs': None, 'render_mode': 'text', 'seed': 1, 'device': None}
+)
+
 # Parallel environments
-# vec_env = make_vec_env("AllPassFilterEnv-v0", n_envs=4)
+# vec_env = make_vec_env('AllPassFilterEnv-v0', n_envs=4, env_kwargs=params)
 
 from pathlib import Path
 import librosa
@@ -31,8 +45,16 @@ print("The polarity of the input signal",
     "needs" if POL_INVERT else "does not need",
     "to be inverted.")
 
-vec_env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='text')
+random_seed = 0
+params = {
+    'input_sig': -INPUT if POL_INVERT else INPUT,
+    'target_sig': TARGET,
+    'fs': FS,
+    'render_mode': 'text',
+    'seed': random_seed
+}
 
+vec_env = gym.make(id='AllPassFilterEnv-v0', **params)
 
 model = PPO("MultiInputPolicy", vec_env, verbose=1)
 model.learn(total_timesteps=10)

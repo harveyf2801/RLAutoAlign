@@ -185,9 +185,7 @@ if __name__ == "__main__":
     env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='graph_filters')
     obs, info = env.reset()
 
-    print(np.array((obs['phase_diff'], obs['db_sum'])).shape)
-
-    spaces.Sequence
+    # print(np.array((obs['phase_diff'], obs['db_sum'])).shape)
 
     # obs, info = env.reset()
 
