@@ -48,9 +48,7 @@ class AllPassFilterEnv(gym.Env):
             self.visualisation = Visualisation("DRL Visuals", self.render_mode, fs=self.fs, fps=self.metadata["render_fps"])
 
         # Define action and observation spaces
-        self.action_space = spaces.Box(low=np.array([(20, 0.1)]*5, dtype=np.float32),
-                                        high=np.array([(800, 10)]*5, dtype=np.float32),
-                                        shape=(5, 2), dtype=np.float32)
+        self.action_space = spaces.Box(low=-1, high=1, shape=(5, 2), dtype=np.float32)
         
         obs_shape = self._get_observation_size()
 
@@ -85,7 +83,12 @@ class AllPassFilterEnv(gym.Env):
     def _update_filter_chain(self, action):
         # Update frequency and q values based on the action
         for i, filter_ in enumerate(self.filters):
-            filter_.frequency, filter_.q = action[i][0], action[i][1]
+            # Map action to freq and q ranges
+            freq = np.interp(action[i][0], [-1, 1], [self.frequency_range[0], self.frequency_range[1]])
+            q = np.interp(action[i][1], [-1, 1], [self.q_range[0], self.q_range[1]])
+
+            # Update filter params
+            filter_.frequency, filter_.q = freq, q
     
     def _get_filtered_signal(self):
         return self.filters.process(self.input_sig)
@@ -119,6 +122,8 @@ class AllPassFilterEnv(gym.Env):
         return info
 
     def step(self, action):
+        self.steps += 1
+
         # Updating the filter from the steps actiona and filtering the input signal
         self._update_filter_chain(action)
         filtered_sig = self._get_filtered_signal()
@@ -126,11 +131,10 @@ class AllPassFilterEnv(gym.Env):
         # Compute the rms difference for the reward
         rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
-        terminated = bool(self.reward > 20) # if the reward is over 10dB RMS, the episode is done
+        terminated = bool(self.reward > 10) # if the reward is over 10dB RMS, the episode is done
         truncated = bool(self.steps > 100_000) # if the steps reach 100,000 / max steps
 
         self.render()
-        self.steps += 1
 
         # observation, reward, terminated, False, info
         return self._get_obs(filtered_sig), self.reward, terminated, truncated, self._get_info()
@@ -193,7 +197,15 @@ if __name__ == "__main__":
 
     env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='text')
 
-    check_gym_env(env)
+    env.reset()
+
+    sample = env.action_space.sample()
+    print(sample)
+    env.step(sample)
+
+    print()
+
+    # check_gym_env(env)
 
     # obs, info = env.reset()
 

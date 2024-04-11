@@ -28,7 +28,7 @@ register(
     # Max number of steps per episode, using a `TimeLimitWrapper`
     max_episode_steps=100_000,
     # Keyword args for constructor
-    kwargs={'input_sig': None, 'target_sig': None, 'fs': None, 'render_mode': 'text', 'seed': 1, 'device': None}
+    kwargs={'input_sig': None, 'target_sig': None, 'fs': None, 'render_mode': 'text', 'seed': None, 'device': None}
 )
 
 ################################### Training ###################################
@@ -78,14 +78,17 @@ def train():
     print("The polarity of the input signal",
         "needs" if POL_INVERT else "does not need",
         "to be inverted.")
-
-    env = gym.make(env_name, input_sig=-INPUT if POL_INVERT else INPUT, target_sig=TARGET, fs=FS, render_mode='text', seed=random_seed)
-
-    # env = gym.make(env_name)
+    
+    env = gym.make(id=env_name,
+                   input_sig=-INPUT if POL_INVERT else INPUT,
+                   target_sig=TARGET,
+                   fs=FS,
+                   render_mode='text',
+                   seed=random_seed)
 
     # state space dimension
     print()
-    state_dim = gym.spaces.utils.flatten_space(env.observation_space).shape[0]
+    state_dim = env.observation_space.shape[0]
 
     # action space dimension
     if has_continuous_action_space:
