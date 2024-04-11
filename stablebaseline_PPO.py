@@ -7,6 +7,7 @@
 import gymnasium as gym
 
 from stable_baselines3 import PPO
+from stable_baseline3.common.vec_env import SubprocessVecEnv
 from stable_baselines3.common.env_util import make_vec_env
 
 from register_env import register_custom_env
@@ -77,5 +78,5 @@ for i in range(3):
 
 
 
-#  https://github.com/ClarityCoders/MarioPPO/blob/master/Train.py
+# https://github.com/ClarityCoders/MarioPPO/blob/master/Train.py
 # https://www.youtube.com/watch?v=PxoG0A2QoFs
