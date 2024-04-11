@@ -20,6 +20,7 @@ class AllPassFilterEnv(gym.Env):
         super(AllPassFilterEnv, self).__init__()
 
         self.seed = seed # Set the seed for reproducibility
+        np.random.seed(self.seed)
         self.steps = 0
 
         self.fft_size=1024
@@ -136,7 +137,7 @@ class AllPassFilterEnv(gym.Env):
         terminated = bool(self.reward > 10) # if the reward is over 10dB RMS, the episode is done
         truncated = bool(self.steps > 100_000) # if the steps reach 100,000 / max steps
 
-        self.render()
+        # self.render()
 
         # observation, reward, terminated, False, info
         return self._get_obs(filtered_sig), self.reward, terminated, truncated, self._get_info()
@@ -144,6 +145,8 @@ class AllPassFilterEnv(gym.Env):
     def reset(self, seed=None, options=None):
         # To seed self.np_random
         super().reset(seed=seed)
+        self.seed = seed
+        np.random.seed(seed)
                   
         # Reset the environment to its initial state
         self.filters = FilterChain([AllPassBand(self.np_random.uniform(*self.frequency_range), self.np_random.uniform(*self.q_range), self.fs) for _ in range(self.n_filterbands)])
@@ -152,7 +155,7 @@ class AllPassFilterEnv(gym.Env):
         observation = self._get_obs(filtered_sig)
         info = self._get_info()
 
-        self.render()
+        # self.render()
 
         return observation, info
 

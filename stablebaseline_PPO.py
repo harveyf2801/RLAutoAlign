@@ -4,65 +4,68 @@
 # DQN / DDQN is usually used for audio based DRL tasks as they're easier
 # to implement however, the above algorithms are generally more efficient.
 
-# https://github.com/TianhongDai/reinforcement-learning-algorithms provides
-# a variety of DRL algorithms to choose from.
-
-
 import gymnasium as gym
 
-from stable_baselines3 import PPO, A2C
+from stable_baselines3 import PPO
 from stable_baselines3.common.env_util import make_vec_env
 
-from gymnasium.envs.registration import register
-from enviroment import AllPassFilterEnv
-
-# Registering custom enviroment
-register(
-    # Unique identifier for the env `name-version`
-    id="AllPassFilterEnv-v0.1",
-    # Path to the class for creating the env
-    # Note: entry_point also accept a class as input (and not only a string)
-    entry_point='enviroment:AllPassFilterEnv',
-    # Max number of steps per episode, using a `TimeLimitWrapper`
-    max_episode_steps=100_000,
-    # Keyword args for constructor
-    kwargs={'input_sig': None, 'target_sig': None, 'fs': None, 'render_mode': 'text', 'seed': 1, 'device': None}
-)
-
-# Parallel environments
-# vec_env = make_vec_env('AllPassFilterEnv-v0.1', n_envs=4, env_kwargs=params)
+from register_env import register_custom_env
 
 from pathlib import Path
 import librosa
 from utilities import auto_polarity_detection
 
+import os
+
+# Creating the dirctories to save / load the model
+# and driectores to store the log files
+models_dir = "models/PPO/"
+log_dir = "tmp_logs/"
+
+if not os.path.exists(models_dir):
+    os.makedirs(models_dir)
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+# Creating the enviroment by loading the audio input and target
+# then checking the polarity before passing into the enviroment
+# registering the enviroment so that it can be used by `gym.make()`
 INPUT, FS = librosa.load(Path(f"soundfiles/KickStemIn.wav"), mono=True, sr=None)
 TARGET, FS = librosa.load(Path(f"soundfiles/KickStemOut.wav"), mono=True, sr=None)
 
-# Check the polarity of the audio files
 POL_INVERT = auto_polarity_detection(INPUT, TARGET)
 print("The polarity of the input signal",
     "needs" if POL_INVERT else "does not need",
     "to be inverted.")
 
-random_seed = 0
-params = {
-    'input_sig': -INPUT if POL_INVERT else INPUT,
-    'target_sig': TARGET,
-    'fs': FS,
-    'render_mode': 'text',
-    'seed': random_seed
-}
+random_seed = 0 # random seed for reproducibility
+env_name = "AllPassFilterEnv-v0.1"
 
-vec_env = gym.make(id='AllPassFilterEnv-v0.1', **params)
+register_custom_env()
 
-model = PPO("MlpPolicy", vec_env, verbose=1)
-model.learn(total_timesteps=100_000)
-model.save("ppo_apf")
+vec_env = gym.make(id=env_name,
+                input_sig=-INPUT if POL_INVERT else INPUT,
+                target_sig=TARGET,
+                fs=FS,
+                render_mode='text',
+                seed=random_seed)
+
+# Creating the Proximal Policy Optimization network and training th model
+# 
+model = PPO("MlpPolicy", vec_env, verbose=1, tensorboard_log="./board/")
+
+# Training the model, creating a custom callback to save the best model
+TIMESTEPS = 10_000
+
+callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=log_dir)
+model.learn(total_timesteps=TIMESTEPS)
+model.save(f"{models_dir}/{TIMESTEPS}")
 
 print("*"*8, "DONE", "*"*8)
 
-del model # remove to demonstrate saving and loading
+# Deleting the model from memory and loading
+# in the model that we've created from storage
+del model
 
 model = PPO.load("ppo_apf")
 
@@ -71,3 +74,8 @@ for i in range(3):
     action, _states = model.predict(obs)
     obs, rewards, dones, info = vec_env.step(action)
     vec_env.render("text")
+
+
+
+#  https://github.com/ClarityCoders/MarioPPO/blob/master/Train.py
+# https://www.youtube.com/watch?v=PxoG0A2QoFs
