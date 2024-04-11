@@ -19,7 +19,7 @@ from enviroment import AllPassFilterEnv
 # Registering custom enviroment
 register(
     # Unique identifier for the env `name-version`
-    id="AllPassFilterEnv-v0",
+    id="AllPassFilterEnv-v0.1",
     # Path to the class for creating the env
     # Note: entry_point also accept a class as input (and not only a string)
     entry_point='enviroment:AllPassFilterEnv',
@@ -30,7 +30,7 @@ register(
 )
 
 # Parallel environments
-# vec_env = make_vec_env('AllPassFilterEnv-v0', n_envs=4, env_kwargs=params)
+# vec_env = make_vec_env('AllPassFilterEnv-v0.1', n_envs=4, env_kwargs=params)
 
 from pathlib import Path
 import librosa
@@ -54,7 +54,7 @@ params = {
     'seed': random_seed
 }
 
-vec_env = gym.make(id='AllPassFilterEnv-v0', **params)
+vec_env = gym.make(id='AllPassFilterEnv-v0.1', **params)
 
 model = PPO("MlpPolicy", vec_env, verbose=1)
 model.learn(total_timesteps=100_000)

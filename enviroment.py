@@ -16,10 +16,8 @@ from Visualisation import Visualisation
 class AllPassFilterEnv(gym.Env):
     metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
 
-    def __init__(self, input_sig, target_sig, fs, render_mode='text', seed=1, device=None):
+    def __init__(self, input_sig, target_sig, fs, render_mode='text', seed=1):
         super(AllPassFilterEnv, self).__init__()
-
-        self.device = device
 
         self.seed = seed # Set the seed for reproducibility
         self.steps = 0
@@ -48,13 +46,14 @@ class AllPassFilterEnv(gym.Env):
             self.visualisation = Visualisation("DRL Visuals", self.render_mode, fs=self.fs, fps=self.metadata["render_fps"])
 
         # Define action and observation spaces
-        self.action_space = spaces.Box(low=-1, high=1, shape=(5, 2), dtype=np.float32)
+        self.action_space = spaces.Box(low=-1, high=1, shape=(self.n_filterbands * 2,), dtype=np.float32)
+        # self.action_space = spaces.Box(low=-1, high=1, shape=(5, 2), dtype=np.float32)
         
         obs_shape = self._get_observation_size()
 
         self.observation_space = spaces.Box(low=-np.inf,
                                             high=np.inf,
-                                            shape=(2, obs_shape[0]*obs_shape[1]),
+                                            shape=(2 * obs_shape[0]*obs_shape[1],),
                                             dtype=np.float64)
         # spaces.Dict({
         # 'phase_diff': spaces.Box(low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float64),
@@ -81,8 +80,11 @@ class AllPassFilterEnv(gym.Env):
         return (num_freq_bins, num_windows)
 
     def _update_filter_chain(self, action):
+        action = action.reshape(5, 2)
+
         # Update frequency and q values based on the action
         for i, filter_ in enumerate(self.filters):
+
             # Map action to freq and q ranges
             freq = np.interp(action[i][0], [-1, 1], [self.frequency_range[0], self.frequency_range[1]])
             q = np.interp(action[i][1], [-1, 1], [self.q_range[0], self.q_range[1]])
@@ -113,7 +115,7 @@ class AllPassFilterEnv(gym.Env):
 
         # Return a placeholder observation and reward
         self.current_obs = {'phase_diff': phase_diff, 'db_sum': db_sum}
-        return np.array([phase_diff.ravel(), mag_sum.ravel()])
+        return np.concatenate((phase_diff.ravel(), mag_sum.ravel()))
 
     def _get_info(self):
         info = {}
@@ -197,13 +199,12 @@ if __name__ == "__main__":
 
     env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='text')
 
-    env.reset()
+    obs, info = env.reset()
 
     sample = env.action_space.sample()
-    print(sample)
-    env.step(sample)
+    _obs, reward, terminated, truncated, info = env.step(sample)
 
-    print()
+    print(obs.shape, env.observation_space.shape)
 
     # check_gym_env(env)
 

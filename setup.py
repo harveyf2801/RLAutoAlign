@@ -13,7 +13,7 @@ def install_packages():
         'librosa',
         'sounddevice',
         'gymnasium',
-        #'stable-baselines3',
+        'stable-baselines3',
         # Add more packages here
     ]
 
