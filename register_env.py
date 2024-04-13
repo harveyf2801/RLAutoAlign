@@ -12,7 +12,7 @@ def register_custom_env():
         # Note: entry_point also accept a class as input (and not only a string)
         entry_point='enviroment:AllPassFilterEnv',
         # Max number of steps per episode, using a `TimeLimitWrapper`
-        max_episode_steps=10,
+        max_episode_steps=200,
         kwargs={'input_sig': None, 'target_sig': None, 'fs': None, 'render_mode': 'text'}
     )
 

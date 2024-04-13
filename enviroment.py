@@ -52,7 +52,7 @@ class AllPassFilterEnv(gym.Env):
 
     The episode ends if either of the following happens:
     1. Termination: The reward/RMS difference hits +20 (as this is a good enough alignment for the audio signals)
-    2. Truncation: The length of the episode is 10_000 steps.
+    2. Truncation: The length of the episode is 200 steps.
 
 
     ### Arguments
@@ -101,7 +101,7 @@ class AllPassFilterEnv(gym.Env):
         self.observation_space = spaces.Box(low=-np.inf,
                                             high=np.inf,
                                             shape=(2 * obs_shape[0]*obs_shape[1],),
-                                            dtype=np.float64)
+                                            dtype=np.float32)
 
         # These get generated on the `reset()` call
         self.filters = None
@@ -152,8 +152,8 @@ class AllPassFilterEnv(gym.Env):
             self.win_length)
 
         # Compute the phase difference and magnitude sum for observation space
-        phase_diff = X_phase - T_phase
-        mag_sum = X_mag + T_mag
+        phase_diff = np.array(X_phase - T_phase, dtype=np.float32)
+        mag_sum = np.array(X_mag + T_mag, dtype=np.float32)
 
         # Compute dB single sided FFT values for the observation space
         db_sum = librosa.core.amplitude_to_db((mag_sum)**2, ref=np.max)
@@ -178,13 +178,17 @@ class AllPassFilterEnv(gym.Env):
         # Compute the rms difference for the reward
         rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
-        terminated = bool(self.reward > 20) # if the reward is over 20dB RMS, the episode is done
-        # truncated = bool(self.steps > 10_000) # if the steps reach 10,000 max steps
+        terminated = bool((self.reward > 20) or (self.reward < 1)) # if the reward is over 20dB RMS
+                                                        # the episode is done in a positive reward state
+                                                        # or if the reward is less than -1dB RMS
+                                                        # the episode is done in a negative reward state
+                                                        
+        truncated = bool(self.steps > 200) # if the steps reach 200 max steps the episode is truncated
 
-        # self.render()
+        self.render()
 
         # observation, reward, terminated, False, info
-        return self._get_obs(filtered_sig), self.reward, terminated, False, self._get_info()
+        return self._get_obs(filtered_sig), self.reward, terminated, truncated, self._get_info()
 
     def reset(self, seed=None, options=None):
         # To seed self.np_random
@@ -244,14 +248,7 @@ if __name__ == "__main__":
 
     env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='text')
 
-    obs, info = env.reset()
-
-    sample = env.action_space.sample()
-    _obs, reward, terminated, truncated, info = env.step(sample)
-
-    print(obs.shape, env.observation_space.shape)
-
-    # check_gym_env(env)
+    check_gym_env(env)
 
     # obs, info = env.reset()
 
