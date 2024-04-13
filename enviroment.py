@@ -14,13 +14,62 @@ from Visualisation import Visualisation
 
 
 class AllPassFilterEnv(gym.Env):
+    """
+    ### Description
+
+    The AllPassFilterEnv is a gymnasium enviroment that consists of 5 2nd order IIR all-pass filters.
+    These filters are applied using Transposed Direct Form II (TDF2) and each have frequency and Q
+    parameters that can be altered via the continuous action space. The goal of enviroment is to find the optimal
+    parameters to align an input signal with a target signal audio. The reward is based on the RMS difference between
+    the original input + target signal, and the filtered signal + target signal.
+
+    ### Observation Space
+
+    The observation is a flattened `ndarray` where the first half of the array is the phase difference between the
+    filtered signal and the target signal, and the second half is the sum of the magnitudes of the filtered signal and
+    the target signal.
+
+    ``
+
+    ### Action Space
+
+    The action space consists of a `ndarray` with the flattened shape from (5, 2) to (1, ) with continuous actions
+    that represent the frequency and Q values of the 5 all-pass filters. These parameters are normalised but then
+    remapped to the ranges of [20, 20kHz] for frequency and the [0.1, 10] for the Q.
+
+    ### Reward:
+
+    The reward is based on the RMS difference between the original input + target signal,
+    and the filtered signal + target signal. This was chosen as when aligning the audio signals, the bi-product
+    of the constructive interference is an overall louder signal. 
+
+    ### Starting State
+
+    The parameters are all randomly selected when the enviroment is initially reset, using the seed for reproducibility.
+    The observation is then calculated for the initial state.
+
+    ### Episode End
+
+    The episode ends if either of the following happens:
+    1. Termination: The reward/RMS difference hits +20 (as this is a good enough alignment for the audio signals)
+    2. Truncation: The length of the episode is 10_000 steps.
+
+
+    ### Arguments
+
+    ```
+    gym.make('AllPassFilterEnv-v0.1')
+    ```
+
+    ### Version History
+
+    * v0.1: Initial version
+    """
+
     metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
 
-    def __init__(self, input_sig, target_sig, fs, render_mode='text', seed=1):
+    def __init__(self, input_sig, target_sig, fs, render_mode='text'):
         super(AllPassFilterEnv, self).__init__()
-
-        self.seed = seed # Set the seed for reproducibility
-        np.random.seed(self.seed)
         self.steps = 0
 
         self.fft_size=1024
@@ -39,8 +88,6 @@ class AllPassFilterEnv(gym.Env):
         self.frequency_range = (1, 800)
         self.q_range = (0.1, 10)
 
-        self.filters = FilterChain([AllPassBand(self.np_random.uniform(*self.frequency_range), self.np_random.uniform(*self.q_range), self.fs) for _ in range(self.n_filterbands)])
-
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
         if (self.render_mode != 'text'):
@@ -48,7 +95,6 @@ class AllPassFilterEnv(gym.Env):
 
         # Define action and observation spaces
         self.action_space = spaces.Box(low=-1, high=1, shape=(self.n_filterbands * 2,), dtype=np.float32)
-        # self.action_space = spaces.Box(low=-1, high=1, shape=(5, 2), dtype=np.float32)
         
         obs_shape = self._get_observation_size()
 
@@ -56,11 +102,9 @@ class AllPassFilterEnv(gym.Env):
                                             high=np.inf,
                                             shape=(2 * obs_shape[0]*obs_shape[1],),
                                             dtype=np.float64)
-        # spaces.Dict({
-        # 'phase_diff': spaces.Box(low=-np.inf, high=np.inf, shape=obs_shape, dtype=np.float64),
-        # 'db_sum': spaces.Box(low=-80, high=0, shape=obs_shape, dtype=np.float64)
-        # })
 
+        # These get generated on the `reset()` call
+        self.filters = None
         self.current_obs = None
     
     def _get_observation_size(self):
@@ -134,19 +178,17 @@ class AllPassFilterEnv(gym.Env):
         # Compute the rms difference for the reward
         rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
-        terminated = bool(self.reward > 10) # if the reward is over 10dB RMS, the episode is done
-        truncated = bool(self.steps > 100_000) # if the steps reach 100,000 / max steps
+        terminated = bool(self.reward > 20) # if the reward is over 20dB RMS, the episode is done
+        # truncated = bool(self.steps > 10_000) # if the steps reach 10,000 max steps
 
         # self.render()
 
         # observation, reward, terminated, False, info
-        return self._get_obs(filtered_sig), self.reward, terminated, truncated, self._get_info()
+        return self._get_obs(filtered_sig), self.reward, terminated, False, self._get_info()
 
     def reset(self, seed=None, options=None):
         # To seed self.np_random
         super().reset(seed=seed)
-        self.seed = seed
-        np.random.seed(seed)
                   
         # Reset the environment to its initial state
         self.filters = FilterChain([AllPassBand(self.np_random.uniform(*self.frequency_range), self.np_random.uniform(*self.q_range), self.fs) for _ in range(self.n_filterbands)])

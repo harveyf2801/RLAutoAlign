@@ -12,8 +12,8 @@ def register_custom_env():
         # Note: entry_point also accept a class as input (and not only a string)
         entry_point='enviroment:AllPassFilterEnv',
         # Max number of steps per episode, using a `TimeLimitWrapper`
-        max_episode_steps=100_000,
-        kwargs={'input_sig': None, 'target_sig': None, 'fs': None, 'render_mode': 'text', 'seed': 1}
+        max_episode_steps=10,
+        kwargs={'input_sig': None, 'target_sig': None, 'fs': None, 'render_mode': 'text'}
     )
 
 if __name__ == '__main__':
@@ -37,5 +37,4 @@ if __name__ == '__main__':
                     input_sig=-INPUT if POL_INVERT else INPUT,
                     target_sig=TARGET,
                     fs=FS,
-                    render_mode='text',
-                    seed=random_seed)
+                    render_mode='text')
