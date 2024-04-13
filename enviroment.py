@@ -5,8 +5,10 @@ from scipy.signal import freqz, csd
 from scipy.fft import fft, fftfreq
 import matplotlib.pyplot as plt
 import librosa
+from pathlib import Path
+import logging
 
-from utilities import get_rms_decibels, get_magnitude_and_phase_stft
+from utilities import get_rms_decibels, get_magnitude_and_phase_stft, auto_polarity_detection
 
 from Filters.AllPassBand import AllPassBand
 from Filters.FilterChain import FilterChain
@@ -68,7 +70,7 @@ class AllPassFilterEnv(gym.Env):
 
     metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
 
-    def __init__(self, input_sig, target_sig, fs, render_mode='text'):
+    def __init__(self, annotations, render_mode='text'):
         super(AllPassFilterEnv, self).__init__()
         self.steps = 0
 
@@ -76,9 +78,11 @@ class AllPassFilterEnv(gym.Env):
         self.hop_size=256
         self.win_length=1024
 
+        input_sig, target_sig, fs = self._load_audio_files()
+
         self.fs = fs
-        self.input_sig = input_sig#[:fs*10]
-        self.target_sig = target_sig#[:fs*10]
+        self.input_sig = input_sig
+        self.target_sig = target_sig
         
         self.original_rms = get_rms_decibels(self.input_sig+self.target_sig)
         self.reward_range = (-80, 80)
@@ -106,6 +110,19 @@ class AllPassFilterEnv(gym.Env):
         # These get generated on the `reset()` call
         self.filters = None
         self.current_obs = None
+    
+    def _load_audio_files(self):
+        input_sig, fs = librosa.load(Path(f"soundfiles/KickStemIn.wav"), mono=True, sr=None)
+        target_sig, _fs = librosa.load(Path(f"soundfiles/KickStemOut.wav"), mono=True, sr=None)
+        assert(_fs == fs)
+
+        # Check the polarity of the audio files
+        pol_invert = auto_polarity_detection(input_sig, target_sig)
+        logging.info("The polarity of the input signal",
+            "needs" if pol_invert else "does not need",
+            "to be inverted.")
+        
+        return -input_sig if pol_invert else input_sig, target_sig, fs
     
     def _get_observation_size(self):
         signal_length = len(self.input_sig)
@@ -234,21 +251,9 @@ def check_gym_env(env):
 # Test the environment
 if __name__ == "__main__":
 
-    from pathlib import Path
-    from utilities import auto_polarity_detection
+    # env = AllPassFilterEnv()
 
-    INPUT, FS = librosa.load(Path(f"soundfiles/KickStemIn.wav"), mono=True, sr=None)
-    TARGET, FS = librosa.load(Path(f"soundfiles/KickStemOut.wav"), mono=True, sr=None)
-
-    # Check the polarity of the audio files
-    POL_INVERT = auto_polarity_detection(INPUT, TARGET)
-    print("The polarity of the input signal",
-        "needs" if POL_INVERT else "does not need",
-        "to be inverted.")
-
-    env = AllPassFilterEnv(-INPUT if POL_INVERT else INPUT, TARGET, FS, render_mode='text')
-
-    check_gym_env(env)
+    # check_gym_env(env)
 
     # obs, info = env.reset()
 
