@@ -7,10 +7,15 @@
 import gymnasium as gym
 
 from stable_baselines3 import PPO
+<<<<<<< HEAD
 from stable_baselines3.common.vec_env import VecMonitor, SubprocVecEnv
 from stable_baselines3.common.utils import set_random_seed
 
 from stablebaseline_callbacks import SaveOnBestTrainingRewardCallback
+=======
+from stable_baseline3.common.vec_env import SubprocessVecEnv
+from stable_baselines3.common.env_util import make_vec_env
+>>>>>>> 91bb40477a7b87049ff01d361cc10ac26a1d4980
 
 from register_env import register_custom_env
 
@@ -22,6 +27,7 @@ import os
 
 register_custom_env()
 
+<<<<<<< HEAD
 def make_env(env_id, i, seed=0):
     """
     Utility function for multiprocessed env.
@@ -97,10 +103,47 @@ if __name__ == "__main__":
     #     action, _states = model.predict(obs)
     #     obs, rewards, dones, info = vec_env.step(action)
     #     vec_env.render("text")
+=======
+vec_env = gym.make(id=env_name,
+                input_sig=-INPUT if POL_INVERT else INPUT,
+                target_sig=TARGET,
+                fs=FS,
+                render_mode='text',
+                seed=random_seed)
+
+# Creating the Proximal Policy Optimization network and training th model
+# 
+model = PPO("MlpPolicy", vec_env, verbose=1, tensorboard_log="./board/")
+
+# Training the model, creating a custom callback to save the best model
+TIMESTEPS = 10_000
+
+callback = SaveOnBestTrainingRewardCallback(check_freq=1000, log_dir=log_dir)
+model.learn(total_timesteps=TIMESTEPS)
+model.save(f"{models_dir}/{TIMESTEPS}")
+
+print("*"*8, "DONE", "*"*8)
+
+# Deleting the model from memory and loading
+# in the model that we've created from storage
+del model
+
+model = PPO.load("ppo_apf")
+
+obs = vec_env.reset()
+for i in range(3):
+    action, _states = model.predict(obs)
+    obs, rewards, dones, info = vec_env.step(action)
+    vec_env.render("text")
+>>>>>>> 91bb40477a7b87049ff01d361cc10ac26a1d4980
 
 
 
 # https://github.com/ClarityCoders/MarioPPO/blob/master/Train.py
+<<<<<<< HEAD
 # https://www.youtube.com/watch?v=PxoG0A2QoFs
 
 # tensorboard --logdir ./board/ --host localhost --port 8088
+=======
+# https://www.youtube.com/watch?v=PxoG0A2QoFs
+>>>>>>> 91bb40477a7b87049ff01d361cc10ac26a1d4980
