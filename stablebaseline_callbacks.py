@@ -6,35 +6,6 @@ import os
 import numpy as np
 import time
 
-class SaveEveryHourCallback(BaseCallback):
-  """
-  Callback for saving a model every hour.
-
-  :param log_dir: Path to the folder where the model will be saved.
-    It must contains the file created by the ``Monitor`` wrapper.
-  :param verbose: Verbosity level.
-  """
-  def __init__(self, log_dir: str, verbose: int = 1):
-    super(SaveEveryHourCallback, self).__init__(verbose)
-    self.log_dir = log_dir
-    self.save_path = os.path.join(log_dir, 'auto_save_model')
-    if not os.path.exists(self.save_path):
-      os.makedirs(self.save_path)
-    self.last_save_time = time.time()
-
-  def _on_step(self) -> bool:
-    current_time = time.time()
-    elapsed_time = current_time - self.last_save_time
-
-    if elapsed_time >= 60:  # 3600 seconds = 1 hour
-      self.last_save_time = current_time
-
-      if self.verbose > 0:
-        print(f"Saving model at {self.save_path}")
-
-      self.model.save(self.save_path)
-
-    return True
 
 class SummaryWriterCallback(BaseCallback):
 

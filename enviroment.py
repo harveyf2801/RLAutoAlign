@@ -87,7 +87,7 @@ class AllPassFilterEnv(gym.Env):
         self.audio_dir = audio_dir
         self.max_class_id = max(self.annotations.ClassID) # number of classes
         
-        self.reward_range = (-80, 80)
+        self.reward_range = (-20, 20)
         self.reward = 0
         
         self.n_filterbands = 5
@@ -207,7 +207,7 @@ class AllPassFilterEnv(gym.Env):
         # Compute the rms difference for the reward
         rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
-        terminated = bool((self.reward > 20) or (self.reward < -10)) # if the reward is over 20dB RMS
+        terminated = bool((self.reward > 10) or (self.reward < -10)) # if the reward is over 10dB RMS
                                                         # the episode is done in a positive reward state
                                                         # or if the reward is less than -10dB RMS
                                                         # the episode is done in a negative reward state
@@ -232,7 +232,7 @@ class AllPassFilterEnv(gym.Env):
 
         print("Resetting the environment")
 
-        if self.reward > 20:
+        if self.reward > 10:
             # only change / update the audio signal if the
             # episode was terminated due to a positive reward
             self._reset_audio()

@@ -39,7 +39,7 @@ def make_env(env_id, i, seed=0):
                     id=env_id,
                     audio_dir='soundfiles/SDDS_segmented_Allfiles',
                     render_mode='text')
-        env = Monitor(TimeLimitWrapper(env, max_steps=2000),
+        env = Monitor(TimeLimitWrapper(env, max_steps=20_000),
                       filename="tmp/TestMonitor")
         return env
     set_random_seed(seed)
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     # Training the model
     print("*"*8, "Training", "*"*8)
 
-    TIMESTEPS = 500_000
+    TIMESTEPS = 1_000_000
     model.learn(total_timesteps=TIMESTEPS,
                 tb_log_name="PPO_APF",
                 progress_bar=True)
