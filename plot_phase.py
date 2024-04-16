@@ -7,11 +7,8 @@ import matplotlib.pyplot as plt
 from utilities import get_magnitude_and_phase_stft, auto_polarity_detection, unwrap
 
 # Load input and target audio files
-INPUT, FS = librosa.load(Path(f"soundfiles/KickStemIn.wav"), mono=True, sr=None)
-TARGET, FS = librosa.load(Path(f"soundfiles/KickStemOut.wav"), mono=True, sr=None)
-
-INPUT = INPUT[:44100 * 2]
-TARGET = TARGET[:44100 * 2]
+INPUT, FS = librosa.load(Path(f"C:/Users/hfret/Downloads/SDDS/Gretsch_BigFatSnare_AKG_414_BTM_Segment_10_peak_0.066.wav"), mono=True, sr=None)
+TARGET, FS = librosa.load(Path(f"C:/Users/hfret/Downloads/SDDS/Gretsch_BigFatSnare_AKG_414_BTM_Segment_2_peak_0.051.wav"), mono=True, sr=None)
 
 signal_length = len(INPUT)
 fft_size=1024

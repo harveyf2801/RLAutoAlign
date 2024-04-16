@@ -10,6 +10,8 @@ import logging
 
 from utilities import get_rms_decibels, get_magnitude_and_phase_stft, auto_polarity_detection
 
+from annotations import get_annotations
+
 from Filters.AllPassBand import AllPassBand
 from Filters.FilterChain import FilterChain
 from Visualisation import Visualisation
@@ -70,26 +72,27 @@ class AllPassFilterEnv(gym.Env):
 
     metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
 
-    def __init__(self, annotations, render_mode='text'):
+    def __init__(self, audio_dir, render_mode='text'):
         super(AllPassFilterEnv, self).__init__()
         self.steps = 0
 
+        # Feature extraction params
         self.fft_size=1024
         self.hop_size=256
         self.win_length=1024
 
-        input_sig, target_sig, fs = self._load_audio_files()
+        self.fs = 44100 # target samplerate
+        self.audio_length = 0.5 # target seconds
 
-        self.fs = fs
-        self.input_sig = input_sig
-        self.target_sig = target_sig
+        self.annotations = get_annotations(audio_dir)
+        self.audio_dir = audio_dir
+        self.max_class_id = max(self.annotations.ClassID) # number of classes
         
-        self.original_rms = get_rms_decibels(self.input_sig+self.target_sig)
         self.reward_range = (-80, 80)
         self.reward = 0
         
         self.n_filterbands = 5
-        self.frequency_range = (1, 800)
+        self.frequency_range = (20, 800)
         self.q_range = (0.1, 10)
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
@@ -110,22 +113,33 @@ class AllPassFilterEnv(gym.Env):
         # These get generated on the `reset()` call
         self.filters = None
         self.current_obs = None
+
+        self._reset_audio()
     
-    def _load_audio_files(self):
-        input_sig, fs = librosa.load(Path(f"soundfiles/KickStemIn.wav"), mono=True, sr=None)
-        target_sig, _fs = librosa.load(Path(f"soundfiles/KickStemOut.wav"), mono=True, sr=None)
-        assert(_fs == fs)
+    def _choose_random_TB_pair(self):
+        # Selecting a random class
+        class_id = self.np_random.integers(0, self.max_class_id)
+        # Selecting a random top and bottom snare record from annotations
+        input_df = self.annotations.query(f'(ClassID == {class_id}) & (Position == "TP")').sample(n=1)
+        target_df = self.annotations.query(f'(ClassID == {class_id}) & (Position == "BTM")').sample(n=1)
+
+        return input_df, target_df
+    
+    def _load_audio_files(self, input_filename, target_filename):
+        # Load in audio with a target samplerate, duration and channels
+        input_sig, fs = librosa.load(Path(self.audio_dir, input_filename), mono=True, sr=self.fs, duration=self.audio_length)
+        target_sig, _fs = librosa.load(Path(self.audio_dir, target_filename), mono=True, sr=self.fs, duration=self.audio_length)
 
         # Check the polarity of the audio files
         pol_invert = auto_polarity_detection(input_sig, target_sig)
-        logging.info("The polarity of the input signal",
+        print("The polarity of the input signal",
             "needs" if pol_invert else "does not need",
             "to be inverted.")
         
-        return -input_sig if pol_invert else input_sig, target_sig, fs
+        return -input_sig if pol_invert else input_sig, target_sig
     
     def _get_observation_size(self):
-        signal_length = len(self.input_sig)
+        signal_length = int(self.fs * self.audio_length)
 
         # Calculate the number of windows
         num_windows = 1 + (signal_length - self.win_length) // self.hop_size
@@ -188,7 +202,7 @@ class AllPassFilterEnv(gym.Env):
     def step(self, action):
         self.steps += 1
 
-        # Updating the filter from the steps actiona and filtering the input signal
+        # Updating the filter from the steps action and filtering the input signal
         self._update_filter_chain(action)
         filtered_sig = self._get_filtered_signal()
 
@@ -206,19 +220,33 @@ class AllPassFilterEnv(gym.Env):
 
         # observation, reward, terminated, False, info
         return self._get_obs(filtered_sig), self.reward, terminated, truncated, self._get_info()
+    
+    def _reset_audio(self):
+        # Reset the environment to its initial state
+        self.input_df, self.target_df = self._choose_random_TB_pair() # selecting a random top and bottom snare
+        self.input_sig, self.target_sig = self._load_audio_files(self.input_df.iloc[0]['FileName'],
+                                                                 self.target_df.iloc[0]['FileName']) # load audio files with checks
+        
+        self.original_rms = get_rms_decibels(self.input_sig+self.target_sig)
+        print(f'Audio Reset:\n{self.input_df}\n{self.target_df}')
 
     def reset(self, seed=None, options=None):
         # To seed self.np_random
         super().reset(seed=seed)
-                  
-        # Reset the environment to its initial state
+
+        if self.reward > 20:
+            # only change / update the audio signal if the
+            # episode was terminated due to a positive reward
+            self._reset_audio()
+
         self.filters = FilterChain([AllPassBand(self.np_random.uniform(*self.frequency_range), self.np_random.uniform(*self.q_range), self.fs) for _ in range(self.n_filterbands)])
 
         filtered_sig = self._get_filtered_signal()
         observation = self._get_obs(filtered_sig)
         info = self._get_info()
+        self.reward = 0
 
-        # self.render()
+        self.render()
 
         return observation, info
 
@@ -251,16 +279,16 @@ def check_gym_env(env):
 # Test the environment
 if __name__ == "__main__":
 
-    # env = AllPassFilterEnv()
+    env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
 
-    # check_gym_env(env)
+    check_gym_env(env)
 
     # obs, info = env.reset()
 
     # # Test with some actions
     # actions = [
-    #     [[100, 10], [102, 10], [600, 10], [605, 10], [2500, 10]],
-    #     [[100, 0.5], [500, 1], [1600, 10], [2300, 2], [3000, 6]],
+    #     np.array([0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.5]),
+    #     np.array([0.6, 0.6, 0.7, 0.7, 0.8, 0.8, 0.9, 0.9, 1, 1]),
     # ]
 
     # for action in actions:

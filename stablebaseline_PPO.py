@@ -32,22 +32,10 @@ def make_env(env_id, i, seed=0):
     :param i: (int) index of the subprocess
     """
     def _init():
-        # Creating the enviroment by loading the audio input and target
-        # then checking the polarity before passing into the enviroment
-        # registering the enviroment so that it can be used by `gym.make()`
-        INPUT, FS = librosa.load(Path("soundfiles/KickStemIn.wav"), mono=True, sr=None)
-        TARGET, FS = librosa.load(Path("soundfiles/KickStemOut.wav"), mono=True, sr=None)
-
-        POL_INVERT = auto_polarity_detection(INPUT, TARGET)
-        print("The polarity of the input signal",
-            "needs" if POL_INVERT else "does not need",
-            "to be inverted.")
-        
+        # Creating the enviroment        
         env = gym.make(
                     id=env_id,
-                    input_sig=-INPUT if POL_INVERT else INPUT,
-                    target_sig=TARGET,
-                    fs=FS,
+                    audio_dir='soundfiles',
                     render_mode='text')
         # env = TimeLimitWrapper(env, max_steps=2000)
         return env
