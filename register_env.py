@@ -11,7 +11,5 @@ def register_custom_env():
         # path to the class for creating the env
         # Note: entry_point also accept a class as input (and not only a string)
         entry_point='enviroment:AllPassFilterEnv',
-        # Max number of steps per episode, using a `TimeLimitWrapper`
-        max_episode_steps=200,
         kwargs={'audio_dir': None, 'render_mode': 'text'}
     )

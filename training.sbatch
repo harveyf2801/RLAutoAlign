@@ -4,7 +4,7 @@
 #SBATCH --output=cluster/hf_diff_apf_training_output.txt
 #SBATCH --error=cluster/hf_diff_apf_training_error.txt
 #
-#SBATCH --time=24:00:00
+#SBATCH --time=72:00:00
 #SBATCH --chdir=/home/hf1/Documents/RLAutoAlign
 
 module purge

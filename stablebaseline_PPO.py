@@ -5,8 +5,10 @@
 # to implement however, the above algorithms are generally more efficient.
 
 import gymnasium as gym
+from enviroment import TimeLimitWrapper
 
 from stable_baselines3 import PPO
+from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecMonitor, SubprocVecEnv
 from stable_baselines3.common.utils import set_random_seed
 
@@ -35,9 +37,10 @@ def make_env(env_id, i, seed=0):
         # Creating the enviroment        
         env = gym.make(
                     id=env_id,
-                    audio_dir='soundfiles',
+                    audio_dir='soundfiles/SDDS_segmented_Allfiles',
                     render_mode='text')
-        # env = TimeLimitWrapper(env, max_steps=2000)
+        env = Monitor(TimeLimitWrapper(env, max_steps=2000),
+                      filename="tmp/TestMonitor")
         return env
     set_random_seed(seed)
     return _init
@@ -67,35 +70,19 @@ if __name__ == "__main__":
     vec_env = make_env(env_name, 0, seed)()
 
     # Creating the Proximal Policy Optimization network
-    model = PPO("MlpPolicy", vec_env, seed=seed, verbose=1, tensorboard_log=log_dir)
+    model = PPO("MlpPolicy", vec_env, seed=seed, verbose=1, tensorboard_log='./board/')
     callbacks = [SummaryWriterCallback(verbose=1)] # custom callback to log reward
 
     # Training the model
     print("*"*8, "Training", "*"*8)
 
-    TIMESTEPS = 10_000
-    iters = 0
-    for i in range(30):
-        model.learn(total_timesteps=TIMESTEPS,
-                    reset_num_timesteps=False,
-                    callback=callbacks,
-                    tb_log_name="PPO_APF",
-                    progress_bar=True)
-        model.save(Path(models_dir, TIMESTEPS*i))
+    TIMESTEPS = 500_000
+    model.learn(total_timesteps=TIMESTEPS,
+                tb_log_name="PPO_APF",
+                progress_bar=True)
+    model.save(Path(models_dir, 'PPO_APF'))
 
     print("*"*8, "DONE", "*"*8)
-
-    # Deleting the model from memory and loading
-    # in the model that we've created from storage
-    # del model
-
-    # model = PPO.load("ppo_apf")
-
-    # obs = vec_env.reset()
-    # for i in range(3):
-    #     action, _states = model.predict(obs)
-    #     obs, rewards, dones, info = vec_env.step(action)
-    #     vec_env.render("text")
 
 
 

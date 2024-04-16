@@ -4,6 +4,9 @@ from pathlib import Path
 import random
 
 def get_annotations(audio_dir, csv_path='annotations.csv'):
+    if not os.path.exists(audio_dir):
+        raise FileNotFoundError(f'{audio_dir} does not exist')
+    
     if not(os.path.exists(Path(csv_path))):
         data = []
 
@@ -54,7 +57,7 @@ def get_annotations(audio_dir, csv_path='annotations.csv'):
 
 
 if __name__ == '__main__':
-    df = get_annotations('C:/Users/hfret/Downloads/SDDS')
+    df = get_annotations('soundfiles/SDDS_segmented_Allfiles')
 
     # Select a unique top and bottom pair of positions for each class ID
     import numpy as np

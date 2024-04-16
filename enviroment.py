@@ -74,7 +74,6 @@ class AllPassFilterEnv(gym.Env):
 
     def __init__(self, audio_dir, render_mode='text'):
         super(AllPassFilterEnv, self).__init__()
-        self.steps = 0
 
         # Feature extraction params
         self.fft_size=1024
@@ -200,7 +199,6 @@ class AllPassFilterEnv(gym.Env):
         return info
 
     def step(self, action):
-        self.steps += 1
 
         # Updating the filter from the steps action and filtering the input signal
         self._update_filter_chain(action)
@@ -209,17 +207,15 @@ class AllPassFilterEnv(gym.Env):
         # Compute the rms difference for the reward
         rms = get_rms_decibels(filtered_sig+self.target_sig)
         self.reward = rms - self.original_rms
-        terminated = bool((self.reward > 20) or (self.reward < 1)) # if the reward is over 20dB RMS
+        terminated = bool((self.reward > 20) or (self.reward < -10)) # if the reward is over 20dB RMS
                                                         # the episode is done in a positive reward state
-                                                        # or if the reward is less than -1dB RMS
+                                                        # or if the reward is less than -10dB RMS
                                                         # the episode is done in a negative reward state
-                                                        
-        truncated = bool(self.steps > 200) # if the steps reach 200 max steps the episode is truncated
 
         self.render()
 
         # observation, reward, terminated, False, info
-        return self._get_obs(filtered_sig), self.reward, terminated, truncated, self._get_info()
+        return self._get_obs(filtered_sig), self.reward, terminated, False, self._get_info()
     
     def _reset_audio(self):
         # Reset the environment to its initial state
@@ -234,6 +230,8 @@ class AllPassFilterEnv(gym.Env):
         # To seed self.np_random
         super().reset(seed=seed)
 
+        print("Resetting the environment")
+
         if self.reward > 20:
             # only change / update the audio signal if the
             # episode was terminated due to a positive reward
@@ -244,7 +242,6 @@ class AllPassFilterEnv(gym.Env):
         filtered_sig = self._get_filtered_signal()
         observation = self._get_obs(filtered_sig)
         info = self._get_info()
-        self.reward = 0
 
         self.render()
 
@@ -257,7 +254,6 @@ class AllPassFilterEnv(gym.Env):
             for index, filter_ in enumerate(self.filters):
                 print(f"Filter {index}: frequency={filter_.frequency}, q={filter_.q}")
             print(f"RMS Difference: {self.reward}")
-            print(f"Step: {self.steps}")
             print("_"*8)
         
         elif self.render_mode == 'graph_filters':
@@ -270,6 +266,41 @@ class AllPassFilterEnv(gym.Env):
         if self.render_mode != 'text':
             self.visualisation.close()
 
+class TimeLimitWrapper(gym.Wrapper):
+    """
+    :param env: (gym.Env) Gym environment that will be wrapped
+    :param max_steps: (int) Max number of steps per episode
+    """
+
+    def __init__(self, env, max_steps=100):
+        # Call the parent constructor, so we can access self.env later
+        super(TimeLimitWrapper, self).__init__(env)
+        self.max_steps = max_steps
+        # Counter of steps per episode
+        self.current_step = 0
+
+    def reset(self, **kwargs):
+        """
+        Reset the environment
+        """
+        # Reset the counter
+        self.current_step = 0
+        return self.env.reset(**kwargs)
+
+    def step(self, action):
+        """
+        :param action: ([float] or int) Action taken by the agent
+        :return: (np.ndarray, float, bool, bool, dict) observation, reward, is the episode over?, additional informations
+        """
+        self.current_step += 1
+        obs, reward, terminated, truncated, info = self.env.step(action)
+        # Overwrite the truncation signal when when the number of steps reaches the maximum
+        if self.current_step >= self.max_steps:
+            truncated = True
+        
+        print('Step: ', self.current_step)
+        return obs, reward, terminated, truncated, info
+    
 def check_gym_env(env):
     from stable_baselines3.common.env_checker import check_env
 
@@ -279,7 +310,7 @@ def check_gym_env(env):
 # Test the environment
 if __name__ == "__main__":
 
-    env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
+    env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
 
     check_gym_env(env)
 
