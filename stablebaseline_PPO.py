@@ -12,7 +12,7 @@ from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecMonitor, SubprocVecEnv
 from stable_baselines3.common.utils import set_random_seed
 
-from stablebaseline_callbacks import SaveEveryHourCallback, SummaryWriterCallback
+from stablebaseline_callbacks import SummaryWriterCallback
 
 from register_env import register_custom_env
 
