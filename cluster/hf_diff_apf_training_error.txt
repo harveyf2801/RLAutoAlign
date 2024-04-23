@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "/home/hf1/Documents/RLAutoAlign/stablebaseline_PPO.py", line 15, in <module>
-    from stablebaseline_callbacks import SaveEveryHourCallback, SummaryWriterCallback
-ImportError: cannot import name 'SaveEveryHourCallback' from 'stablebaseline_callbacks' (/home/hf1/Documents/RLAutoAlign/stablebaseline_callbacks.py)
+  File "/home/hf1/Documents/RLAutoAlign/stablebaseline_PPO.py", line 7, in <module>
 srun: error: gpu1-cluster3: task 0: Exited with exit code 1
+    import gymnasium as gym
+ModuleNotFoundError: No module named 'gymnasium'

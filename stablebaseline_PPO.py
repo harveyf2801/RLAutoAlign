@@ -74,7 +74,7 @@ if __name__ == "__main__":
     model = PPO("MlpPolicy", vec_env, seed=seed, verbose=1, tensorboard_log='./board/')
     callbacks = [SummaryWriterCallback(verbose=1), # custom callback to log reward
                 CheckpointCallback( # Save a checkpoint every 1000 steps
-                    save_freq=10000,
+                    save_freq=10_000,
                     save_path=Path(models_dir, 'checkpoint'),
                     name_prefix="ppo_apf",
                     save_replay_buffer=True,
@@ -84,11 +84,11 @@ if __name__ == "__main__":
     # Training the model
     print("*"*8, "Training", "*"*8)
 
-    TIMESTEPS = 3_000_000
+    TIMESTEPS = 5_000_000
     model.learn(total_timesteps=TIMESTEPS,
-                tb_log_name="PPO_APF2",
+                tb_log_name="PPO_APF",
                 progress_bar=True)
-    model.save(Path(models_dir, 'PPO_APF2'))
+    model.save(Path(models_dir, 'PPO_APF2')) 
 
     print("*"*8, "DONE", "*"*8)
 
