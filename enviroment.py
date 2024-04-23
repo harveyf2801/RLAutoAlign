@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import librosa
 from pathlib import Path
 import logging
+from losses import MultiResolutionSTFTLoss
 
 from utilities import get_rms_decibels, get_magnitude_and_phase_stft, auto_polarity_detection
 
@@ -87,6 +88,7 @@ class AllPassFilterEnv(gym.Env):
         self.audio_dir = audio_dir
         self.max_class_id = max(self.annotations.ClassID) # number of classes
         
+        self.loss = MultiResolutionSTFTLoss()
         self.reward_range = (-20, 20)
         self.reward = 0
         
@@ -128,6 +130,10 @@ class AllPassFilterEnv(gym.Env):
         # Load in audio with a target samplerate, duration and channels
         input_sig, fs = librosa.load(Path(self.audio_dir, input_filename), mono=True, sr=self.fs, duration=self.audio_length)
         target_sig, _fs = librosa.load(Path(self.audio_dir, target_filename), mono=True, sr=self.fs, duration=self.audio_length)
+
+        # Normalize the audio signals
+        input_sig /= np.max(np.abs(input_sig))
+        target_sig /= np.max(np.abs(target_sig))
 
         # Check the polarity of the audio files
         pol_invert = auto_polarity_detection(input_sig, target_sig)
@@ -205,9 +211,8 @@ class AllPassFilterEnv(gym.Env):
         filtered_sig = self._get_filtered_signal()
 
         # Compute the rms difference for the reward
-        rms = get_rms_decibels(filtered_sig+self.target_sig)
-        self.reward = rms - self.original_rms
-        terminated = bool((self.reward > 10) or (self.reward < -10)) # if the reward is over 10dB RMS
+        self.reward = -self.loss.forward(filtered_sig, self.target_sig)
+        # terminated = bool((self.reward > 10) or (self.reward < -10)) # if the reward is over 10dB RMS
                                                         # the episode is done in a positive reward state
                                                         # or if the reward is less than -10dB RMS
                                                         # the episode is done in a negative reward state
@@ -215,7 +220,7 @@ class AllPassFilterEnv(gym.Env):
         self.render()
 
         # observation, reward, terminated, False, info
-        return self._get_obs(filtered_sig), self.reward, terminated, False, self._get_info()
+        return self._get_obs(filtered_sig), self.reward, False, False, self._get_info()
     
     def _reset_audio(self):
         # Reset the environment to its initial state
@@ -223,7 +228,6 @@ class AllPassFilterEnv(gym.Env):
         self.input_sig, self.target_sig = self._load_audio_files(self.input_df.iloc[0]['FileName'],
                                                                  self.target_df.iloc[0]['FileName']) # load audio files with checks
         
-        self.original_rms = get_rms_decibels(self.input_sig+self.target_sig)
         print(f'Audio Reset:\n{self.input_df}\n{self.target_df}')
 
     def reset(self, seed=None, options=None):
@@ -310,8 +314,9 @@ def check_gym_env(env):
 # Test the environment
 if __name__ == "__main__":
 
-    env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
-
+    # env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
+    
+    env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
     check_gym_env(env)
 
     # obs, info = env.reset()

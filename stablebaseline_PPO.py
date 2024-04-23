@@ -84,7 +84,7 @@ if __name__ == "__main__":
     # Training the model
     print("*"*8, "Training", "*"*8)
 
-    TIMESTEPS = 1_000_000
+    TIMESTEPS = 3_000_000
     model.learn(total_timesteps=TIMESTEPS,
                 tb_log_name="PPO_APF2",
                 progress_bar=True)
@@ -92,9 +92,5 @@ if __name__ == "__main__":
 
     print("*"*8, "DONE", "*"*8)
 
-
-
-# https://github.com/ClarityCoders/MarioPPO/blob/master/Train.py
-# https://www.youtube.com/watch?v=PxoG0A2QoFs
 
 # tensorboard --logdir ./board/ --host localhost --port 8088
