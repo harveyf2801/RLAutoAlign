@@ -44,13 +44,15 @@ class AllPassFilterEnv(gym.Env):
 
     ### Reward:
 
-    The reward is based on the RMS difference between the original input + target signal,
-    and the filtered signal + target signal. This was chosen as when aligning the audio signals, the bi-product
-    of the constructive interference is an overall louder signal. 
+    The reward is based on the inverse MR-STFT loss difference between the filtered signal + target signal. This was chosen as
+    when aligning the audio signals, the bi-product of the constructive interference is an overall louder signal. Therefore,
+    the stft loss will compare the sum of the two magnitudes of the individual signals with the magnitude of the summed signals
+    before taking the stft. This loss can go between 510 to 0 where 0 is the perfectly aligned signal and 510 is completely out
+    of phase.
 
     ### Starting State
 
-    The parameters are all randomly selected when the enviroment is initially reset, using the seed for reproducibility.
+    The parameters are all randomly selected when the environment is initially reset, using the seed for reproducibility.
     The observation is then calculated for the initial state.
 
     ### Episode End
@@ -68,7 +70,8 @@ class AllPassFilterEnv(gym.Env):
 
     ### Version History
 
-    * v0.1: Initial version
+    * v0.1: Initial version using RMS difference with 5 filter bands between 20 and 800 Hz
+    * v0.2: Started using the inverse and scaled MR-STFT loss as the reward
     """
 
     metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
@@ -77,9 +80,12 @@ class AllPassFilterEnv(gym.Env):
         super(AllPassFilterEnv, self).__init__()
 
         # Feature extraction params
+
         self.fft_size=1024
         self.hop_size=256
         self.win_length=1024
+        self.window="hann_window",
+        self.eps=1e-8,
 
         self.fs = 44100 # target samplerate
         self.audio_length = 0.5 # target seconds
@@ -89,11 +95,10 @@ class AllPassFilterEnv(gym.Env):
         self.max_class_id = max(self.annotations.ClassID) # number of classes
         
         self.loss = MultiResolutionSTFTLoss()
-        self.reward_range = (-20, 20)
-        self.reward = 0
+        self.reward_range = (-100, 100)
         
-        self.n_filterbands = 5
-        self.frequency_range = (20, 800)
+        self.n_filterbands = 10
+        self.frequency_range = (20, 20000)
         self.q_range = (0.1, 10)
 
         assert render_mode is None or render_mode in self.metadata["render_modes"]
@@ -114,6 +119,8 @@ class AllPassFilterEnv(gym.Env):
         # These get generated on the `reset()` call
         self.filters = None
         self.current_obs = None
+        self.reward = None
+        self.original_loss = None
 
         self._reset_audio()
     
@@ -161,7 +168,7 @@ class AllPassFilterEnv(gym.Env):
         return (num_freq_bins, num_windows)
 
     def _update_filter_chain(self, action):
-        action = action.reshape(5, 2)
+        action = action.reshape(self.n_filterbands, 2)
 
         # Update frequency and q values based on the action
         for i, filter_ in enumerate(self.filters):
@@ -204,6 +211,18 @@ class AllPassFilterEnv(gym.Env):
             info[f"Filter {i}"] = {'Frequency': filter_.frequency, 'Q': filter_.q}
         return info
 
+    def _get_reward(self, x, y):
+        loss = -abs(float(self.loss(x, y)))
+        if loss >= self.original_loss:
+            # Positive impact
+            # Rescale from original -> 0 to 0 -> 100
+            reward = np.interp(loss, (self.original_loss, 0), (0, 100))
+        else:
+            # Negative impact
+            # Rescale from -510 <- original to -100 <- 0
+            reward = np.interp(loss, (self.original_loss-1, self.original_loss), (-100, 0))
+        return reward
+
     def step(self, action):
 
         # Updating the filter from the steps action and filtering the input signal
@@ -211,9 +230,9 @@ class AllPassFilterEnv(gym.Env):
         filtered_sig = self._get_filtered_signal()
 
         # Compute the rms difference for the reward
-        self.reward = -self.loss.forward(filtered_sig, self.target_sig)
-        # terminated = bool((self.reward > 10) or (self.reward < -10)) # if the reward is over 10dB RMS
-                                                        # the episode is done in a positive reward state
+        self.reward = self._get_reward(filtered_sig, self.target_sig)
+        terminated = bool((self.reward > 10) or (self.reward < -10)) # if the reward is 0 then the phase is perfectly aligned (unlikely to happen)
+                                                        # in this case the episode is done in a positive reward state
                                                         # or if the reward is less than -10dB RMS
                                                         # the episode is done in a negative reward state
 
@@ -227,7 +246,10 @@ class AllPassFilterEnv(gym.Env):
         self.input_df, self.target_df = self._choose_random_TB_pair() # selecting a random top and bottom snare
         self.input_sig, self.target_sig = self._load_audio_files(self.input_df.iloc[0]['FileName'],
                                                                  self.target_df.iloc[0]['FileName']) # load audio files with checks
-        
+
+        self.original_loss = -abs(float(self.loss(self.input_sig, self.target_sig)))
+        print('Original Reward: ', self.original_loss)
+
         print(f'Audio Reset:\n{self.input_df}\n{self.target_df}')
 
     def reset(self, seed=None, options=None):
@@ -236,17 +258,16 @@ class AllPassFilterEnv(gym.Env):
 
         print("Resetting the environment")
 
-        if self.reward > 10:
-            # only change / update the audio signal if the
-            # episode was terminated due to a positive reward
-            self._reset_audio()
+        self._reset_audio()
 
         self.filters = FilterChain([AllPassBand(self.np_random.uniform(*self.frequency_range), self.np_random.uniform(*self.q_range), self.fs) for _ in range(self.n_filterbands)])
 
         filtered_sig = self._get_filtered_signal()
         observation = self._get_obs(filtered_sig)
-        info = self._get_info()
 
+        self.reward = self._get_reward(filtered_sig, self.target_sig)
+
+        info = self._get_info()
         self.render()
 
         return observation, info
@@ -257,7 +278,7 @@ class AllPassFilterEnv(gym.Env):
             print("_"*8)
             for index, filter_ in enumerate(self.filters):
                 print(f"Filter {index}: frequency={filter_.frequency}, q={filter_.q}")
-            print(f"RMS Difference: {self.reward}")
+            print(f"Reward: {self.reward}")
             print("_"*8)
         
         elif self.render_mode == 'graph_filters':
@@ -316,14 +337,14 @@ if __name__ == "__main__":
 
     # env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
     
-    env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
+    env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
     check_gym_env(env)
 
     # obs, info = env.reset()
 
     # # Test with some actions
     # actions = [
-    #     np.array([0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5, 0.5]),
+    #     np.array([1, 0.1, 1, 0.2, 1, 0.3, 1, 0.4, 1, 0.5]),
     #     np.array([0.6, 0.6, 0.7, 0.7, 0.8, 0.8, 0.9, 0.9, 1, 1]),
     # ]
 

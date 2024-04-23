@@ -58,7 +58,7 @@ if __name__ == "__main__":
         os.makedirs(log_dir)
 
     seed = 0 # random seed for reproducibility
-    env_name = "AllPassFilterEnv-v0.1"
+    env_name = "AllPassFilterEnv-v0.2"
 
     # Creating multiple enviroments
     # and wrapping it in a multiprocessed vectorised wrapper,

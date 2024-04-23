@@ -7,7 +7,7 @@ import gymnasium as gym
 def register_custom_env():
     register(
         # unique identifier for the env `name-version`
-        id="AllPassFilterEnv-v0.1",
+        id="AllPassFilterEnv-v0.2",
         # path to the class for creating the env
         # Note: entry_point also accept a class as input (and not only a string)
         entry_point='enviroment:AllPassFilterEnv',

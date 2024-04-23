@@ -41,7 +41,8 @@ class STFTLoss(torch.nn.Module):
         return x_mag[:, :(self.fft_size//8), :]
     
     def forward(self, x, y):
-        print(x.view(-1, x.size(-1)))
+        x = torch.tensor(x)
+        y = torch.tensor(y)
         x_mag = self.stft(x.view(-1, x.size(-1)))
         y_mag = self.stft(y.view(-1, y.size(-1)))
 
