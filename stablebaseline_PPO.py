@@ -11,6 +11,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import VecMonitor, SubprocVecEnv
 from stable_baselines3.common.utils import set_random_seed
+from stable_baselines3.common.callbacks import CheckpointCallback
 
 from stablebaseline_callbacks import SummaryWriterCallback
 
@@ -71,16 +72,23 @@ if __name__ == "__main__":
 
     # Creating the Proximal Policy Optimization network
     model = PPO("MlpPolicy", vec_env, seed=seed, verbose=1, tensorboard_log='./board/')
-    callbacks = [SummaryWriterCallback(verbose=1)] # custom callback to log reward
+    callbacks = [SummaryWriterCallback(verbose=1), # custom callback to log reward
+                CheckpointCallback( # Save a checkpoint every 1000 steps
+                    save_freq=10000,
+                    save_path=Path(models_dir, 'checkpoint'),
+                    name_prefix="ppo_apf",
+                    save_replay_buffer=True,
+                    save_vecnormalize=True,
+                    )]
 
     # Training the model
     print("*"*8, "Training", "*"*8)
 
     TIMESTEPS = 1_000_000
     model.learn(total_timesteps=TIMESTEPS,
-                tb_log_name="PPO_APF",
+                tb_log_name="PPO_APF2",
                 progress_bar=True)
-    model.save(Path(models_dir, 'PPO_APF'))
+    model.save(Path(models_dir, 'PPO_APF2'))
 
     print("*"*8, "DONE", "*"*8)
 
