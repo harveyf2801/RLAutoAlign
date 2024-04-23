@@ -6,4 +6,6 @@ __pycache__/
 # Ignore .wav files
 *.wav
 *PPO_APF*.zip
-*hf_diff_apf_training*.txt
+
+cluster/hf_diff_apf_training_error.txt
+cluster/hf_diff_apf_training_output.txt
