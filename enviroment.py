@@ -71,7 +71,7 @@ class AllPassFilterEnv(gym.Env):
     ### Version History
 
     * v0.1: Initial version using RMS difference with 5 filter bands between 20 and 800 Hz.
-    * v0.2: Started using the inverse and scaled MR-STFT loss as the reward and for polarity detection.
+    * v0.2: Started using the inverse MR-STFT loss as the reward and for polarity detection.
     """
 
     metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
@@ -95,7 +95,7 @@ class AllPassFilterEnv(gym.Env):
         self.max_class_id = max(self.annotations.ClassID) # number of classes
         
         self.loss = MultiResolutionSTFTLoss()
-        self.reward_range = (-100, 100)
+        # self.reward_range = (-1, 1)
         
         self.n_filterbands = 10
         self.frequency_range = (20, 20000)
@@ -144,7 +144,7 @@ class AllPassFilterEnv(gym.Env):
 
         # Check the polarity of the audio files
         pol_invert = abs(float(self.loss(input_sig, target_sig))) > abs(float(self.loss(-input_sig, target_sig)))
-                
+        
         return -input_sig if pol_invert else input_sig, target_sig
     
     def _get_observation_size(self):
@@ -209,15 +209,8 @@ class AllPassFilterEnv(gym.Env):
         return info
 
     def _get_reward(self, x, y):
-        loss = -abs(float(self.loss(x, y)))
-        if loss >= self.original_loss:
-            # Positive impact
-            # Rescale from original -> 0 to 0 -> 100
-            reward = np.interp(loss, (self.original_loss, 0), (0, 100))
-        else:
-            # Negative impact
-            # Rescale from -510 <- original to -100 <- 0
-            reward = np.interp(loss, (self.original_loss-1, self.original_loss), (-100, 0))
+        loss = abs(float(self.loss(x, y)))
+        reward = self.original_loss - loss
         return reward
 
     def step(self, action):
@@ -228,7 +221,7 @@ class AllPassFilterEnv(gym.Env):
 
         # Compute the rms difference for the reward
         self.reward = self._get_reward(filtered_sig, self.target_sig)
-        terminated = bool((self.reward > 99) or (self.reward < -99)) # if the reward is over 99 then the phase is almost perfectly aligned (unlikely to happen)
+        # terminated = bool((self.reward > 1) or (self.reward < -1)) # if the reward is over 99 then the phase is almost perfectly aligned (unlikely to happen)
                                                         # in this case the episode is done in a positive reward state.
                                                         # or if the reward is less than -100 then the phase is significantly misaligned to the original signal
                                                         # in this case the episode is done in a negative reward state.
@@ -236,7 +229,7 @@ class AllPassFilterEnv(gym.Env):
         # self.render()
 
         # observation, reward, terminated, False, info
-        return self._get_obs(filtered_sig), self.reward, terminated, False, self._get_info()
+        return self._get_obs(filtered_sig), self.reward, False, False, self._get_info()
     
     def _reset_audio(self):
         # Reset the environment to its initial state
@@ -244,10 +237,10 @@ class AllPassFilterEnv(gym.Env):
         self.input_sig, self.target_sig = self._load_audio_files(self.input_df.iloc[0]['FileName'],
                                                                  self.target_df.iloc[0]['FileName']) # load audio files with checks
 
-        self.original_loss = -abs(float(self.loss(self.input_sig, self.target_sig)))
+        self.original_loss = abs(float(self.loss(self.input_sig, self.target_sig)))
         print('Original Reward: ', self.original_loss)
 
-        print(f'Audio Reset:\n{self.input_df.iloc[0]['FileName']}\n{self.target_df.iloc[0]['FileName']}')
+        print(f"Audio Reset:\n{self.input_df.iloc[0]['FileName']}\n{self.target_df.iloc[0]['FileName']}")
 
     def reset(self, seed=None, options=None):
         # To seed self.np_random
@@ -336,7 +329,7 @@ if __name__ == "__main__":
 
     # env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
     
-    env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
+    env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
     check_gym_env(env)
 
     # obs, info = env.reset()

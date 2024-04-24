@@ -60,22 +60,27 @@ def stuff():
 
 
 
-original = -0.004
+# original = -0.004
 
-losses = [-510, -9, -0.003]
+# losses = [-510, -9, -0.003]
 
-loss_range = (-510, 0)
+# loss_range = (-510, 0)
 
 
-for loss in losses:
-    if loss >= original:
-        # Positive impact
-        # Rescale from original -> 0 to 0 -> 1
-        reward = np.interp(loss, (original, 0), (0, 1))
-    else:
-        # Negative impact
-        # Rescale from -510 -> original to -1 -> 0
-        reward = np.interp(loss, (-510, original), (-1, 0))
+# for loss in losses:
+#     if loss >= original:
+#         # Positive impact
+#         # Rescale from original -> 0 to 0 -> 1
+#         reward = np.interp(loss, (original, 0), (0, 1))
+#     else:
+#         # Negative impact
+#         # Rescale from -510 -> original to -1 -> 0
+#         reward = np.interp(loss, (-510, original), (-1, 0))
 
-    print(reward)
+#     print(reward)
+
+loss1 = 1
+loss2 = 200
+
+print("Reward loss: ", (loss1-loss2)/loss1*100, "%")
 
