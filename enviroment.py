@@ -70,8 +70,8 @@ class AllPassFilterEnv(gym.Env):
 
     ### Version History
 
-    * v0.1: Initial version using RMS difference with 5 filter bands between 20 and 800 Hz
-    * v0.2: Started using the inverse and scaled MR-STFT loss as the reward
+    * v0.1: Initial version using RMS difference with 5 filter bands between 20 and 800 Hz.
+    * v0.2: Started using the inverse and scaled MR-STFT loss as the reward and for polarity detection.
     """
 
     metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
@@ -143,11 +143,8 @@ class AllPassFilterEnv(gym.Env):
         target_sig /= np.max(np.abs(target_sig))
 
         # Check the polarity of the audio files
-        pol_invert = auto_polarity_detection(input_sig, target_sig)
-        print("The polarity of the input signal",
-            "needs" if pol_invert else "does not need",
-            "to be inverted.")
-        
+        pol_invert = abs(float(self.loss(input_sig, target_sig))) > abs(float(self.loss(-input_sig, target_sig)))
+                
         return -input_sig if pol_invert else input_sig, target_sig
     
     def _get_observation_size(self):
@@ -231,15 +228,15 @@ class AllPassFilterEnv(gym.Env):
 
         # Compute the rms difference for the reward
         self.reward = self._get_reward(filtered_sig, self.target_sig)
-        terminated = bool((self.reward > 10) or (self.reward < -10)) # if the reward is 0 then the phase is perfectly aligned (unlikely to happen)
-                                                        # in this case the episode is done in a positive reward state
-                                                        # or if the reward is less than -10dB RMS
-                                                        # the episode is done in a negative reward state
+        terminated = bool((self.reward > 99) or (self.reward < -99)) # if the reward is over 99 then the phase is almost perfectly aligned (unlikely to happen)
+                                                        # in this case the episode is done in a positive reward state.
+                                                        # or if the reward is less than -100 then the phase is significantly misaligned to the original signal
+                                                        # in this case the episode is done in a negative reward state.
 
-        self.render()
+        # self.render()
 
         # observation, reward, terminated, False, info
-        return self._get_obs(filtered_sig), self.reward, False, False, self._get_info()
+        return self._get_obs(filtered_sig), self.reward, terminated, False, self._get_info()
     
     def _reset_audio(self):
         # Reset the environment to its initial state
@@ -250,13 +247,11 @@ class AllPassFilterEnv(gym.Env):
         self.original_loss = -abs(float(self.loss(self.input_sig, self.target_sig)))
         print('Original Reward: ', self.original_loss)
 
-        print(f'Audio Reset:\n{self.input_df}\n{self.target_df}')
+        print(f'Audio Reset:\n{self.input_df.iloc[0]['FileName']}\n{self.target_df.iloc[0]['FileName']}')
 
     def reset(self, seed=None, options=None):
         # To seed self.np_random
         super().reset(seed=seed)
-
-        print("Resetting the environment")
 
         self._reset_audio()
 
@@ -301,6 +296,7 @@ class TimeLimitWrapper(gym.Wrapper):
         # Call the parent constructor, so we can access self.env later
         super(TimeLimitWrapper, self).__init__(env)
         self.max_steps = max_steps
+        self.current_episode = 0
         # Counter of steps per episode
         self.current_step = 0
 
@@ -310,6 +306,9 @@ class TimeLimitWrapper(gym.Wrapper):
         """
         # Reset the counter
         self.current_step = 0
+
+        # print('Episode: ', self.current_episode)
+        self.current_episode += 1
         return self.env.reset(**kwargs)
 
     def step(self, action):
@@ -323,7 +322,7 @@ class TimeLimitWrapper(gym.Wrapper):
         if self.current_step >= self.max_steps:
             truncated = True
         
-        print('Step: ', self.current_step)
+        # print('Step: ', self.current_step)
         return obs, reward, terminated, truncated, info
     
 def check_gym_env(env):

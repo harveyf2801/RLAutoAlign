@@ -10,8 +10,8 @@
 module purge
 module load anaconda3
 module load cuda-11.2.1
-#conda init bash
-#conda activate hf_diff_apf
-source activate hf_diff_apf
+conda init bash
+# source activate hf_diff_apf
+conda activate hf_diff_apf
 
 srun python stablebaseline_PPO.py

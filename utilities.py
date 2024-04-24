@@ -15,6 +15,8 @@ def auto_polarity_detection(signal, ref_signal):
     '''
     Auto polarity detection using decibel RMS level comparison.
     Returns True if polarity inversion is needed.
+
+    ** NOT AS ACCURATE AS USING MR-STFT LOSS **
     '''
     # Reference value for decibel calculation
     reference = 1.0

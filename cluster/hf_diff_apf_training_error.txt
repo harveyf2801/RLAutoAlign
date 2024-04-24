@@ -1,5 +1,25 @@
-Traceback (most recent call last):
-  File "/home/hf1/Documents/RLAutoAlign/stablebaseline_PPO.py", line 7, in <module>
-srun: error: gpu1-cluster3: task 0: Exited with exit code 1
-    import gymnasium as gym
-ModuleNotFoundError: No module named 'gymnasium'
+
+CommandNotFoundError: Your shell has not been properly configured to use 'conda activate'.
+To initialize your shell, run
+
+    $ conda init <SHELL_NAME>
+
+Currently supported shells are:
+  - bash
+  - fish
+  - tcsh
+  - xonsh
+  - zsh
+  - powershell
+
+See 'conda init --help' for more information and options.
+
+IMPORTANT: You may need to close and restart your shell after running 'conda init'.
+
+
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 1069 ON gpu1-cluster3 CANCELLED AT 2024-04-24T09:49:03 ***
+slurmstepd: error: *** STEP 1069.0 ON gpu1-cluster3 CANCELLED AT 2024-04-24T09:49:03 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 1068 ON gpu1-cluster3 CANCELLED AT 2024-04-24T10:03:47 ***
+slurmstepd: error: *** STEP 1068.0 ON gpu1-cluster3 CANCELLED AT 2024-04-24T10:03:47 ***

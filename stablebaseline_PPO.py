@@ -72,9 +72,9 @@ if __name__ == "__main__":
 
     # Creating the Proximal Policy Optimization network
     model = PPO("MlpPolicy", vec_env, seed=seed, verbose=1, tensorboard_log='./board/')
-    callbacks = [SummaryWriterCallback(verbose=1), # custom callback to log reward
+    callbacks = [#SummaryWriterCallback(verbose=1), # custom callback to log reward
                 CheckpointCallback( # Save a checkpoint every 1000 steps
-                    save_freq=10_000,
+                    save_freq=100_000,
                     save_path=Path(models_dir, 'checkpoint'),
                     name_prefix="ppo_apf",
                     save_replay_buffer=True,
@@ -86,9 +86,9 @@ if __name__ == "__main__":
 
     TIMESTEPS = 5_000_000
     model.learn(total_timesteps=TIMESTEPS,
-                tb_log_name="PPO_APF",
-                progress_bar=True)
-    model.save(Path(models_dir, 'PPO_APF2')) 
+                callback=callbacks,
+                tb_log_name="PPO_APF")
+    model.save(Path(models_dir, 'PPO_APF2'))
 
     print("*"*8, "DONE", "*"*8)
 
