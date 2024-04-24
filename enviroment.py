@@ -221,10 +221,7 @@ class AllPassFilterEnv(gym.Env):
 
         # Compute the rms difference for the reward
         self.reward = self._get_reward(filtered_sig, self.target_sig)
-        # terminated = bool((self.reward > 1) or (self.reward < -1)) # if the reward is over 99 then the phase is almost perfectly aligned (unlikely to happen)
-                                                        # in this case the episode is done in a positive reward state.
-                                                        # or if the reward is less than -100 then the phase is significantly misaligned to the original signal
-                                                        # in this case the episode is done in a negative reward state.
+        # terminated = bool((reward > ? or reward < ?)
 
         # self.render()
 

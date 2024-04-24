@@ -79,8 +79,9 @@ def stuff():
 
 #     print(reward)
 
-loss1 = 1
-loss2 = 200
-
-print("Reward loss: ", (loss1-loss2)/loss1*100, "%")
+loss1 = 3
+loss2 = 9
+reward = loss1 - loss2
+print("Reward loss: ", reward)
+print("Terminated: ", (reward > loss1-0.0001 or reward < loss1+4))
 
