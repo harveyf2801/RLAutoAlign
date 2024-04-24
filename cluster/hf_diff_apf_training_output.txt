@@ -1,0 +1,316 @@
+no change     /applications/anaconda3/condabin/conda
+no change     /applications/anaconda3/bin/conda
+no change     /applications/anaconda3/bin/conda-env
+no change     /applications/anaconda3/bin/activate
+no change     /applications/anaconda3/bin/deactivate
+no change     /applications/anaconda3/etc/profile.d/conda.sh
+no change     /applications/anaconda3/etc/fish/conf.d/conda.fish
+no change     /applications/anaconda3/shell/condabin/Conda.psm1
+no change     /applications/anaconda3/shell/condabin/conda-hook.ps1
+no change     /applications/anaconda3/lib/python3.9/site-packages/xontrib/conda.xsh
+no change     /applications/anaconda3/etc/profile.d/conda.csh
+no change     /home/hf1/.bashrc
+No action taken.
+Original Reward:  -2.3092572689056396
+Audio Reset:
+Gretsch_Oring2inch_Audix_i5_TP_Segment_15_peak_0.11.wav
+Gretsch_Oring2inch_AKG_451_BTM_Segment_15_peak_0.833.wav
+Using cuda device
+Wrapping the env in a DummyVecEnv.
+******** Training ********
+Original Reward:  -2.4905011653900146
+Audio Reset:
+YamahaMaple_Moongel_Rode_M3_TP_Segment_29_peak_0.142.wav
+YamahaMaple_Moongel_Sennheiser_MD421_BTM_Segment_29_peak_0.179.wav
+________
+Filter 0: frequency=5410.338541002129, q=0.5056378869683275
+Filter 1: frequency=350.2221578600113, q=8.151375368082697
+Filter 2: frequency=18256.85643400888, q=6.105694180095081
+Filter 3: frequency=14595.341288460288, q=5.481887415507686
+Filter 4: frequency=18702.74702727961, q=8.176950185803168
+Filter 5: frequency=74.71523339955894, q=8.588302338216936
+Filter 6: frequency=691.0397946031778, q=7.323588919656446
+Filter 7: frequency=3529.599299639129, q=8.645471331263877
+Filter 8: frequency=10838.395180576852, q=3.0671477163201097
+Filter 9: frequency=8465.290679529217, q=0.3803647443400834
+Reward: -74.42790277995837
+________
+Logging to ./board/PPO_APF_2
+Original Reward:  -1.405633807182312
+Audio Reset:
+Tama6.5_BigFatSnare_Audix_D2_TP_Segment_37_peak_0.385.wav
+Tama6.5_BigFatSnare_DPA_4090_BTM_Segment_37_peak_0.582.wav
+________
+Filter 0: frequency=2503.1798644612877, q=6.73918170546694
+Filter 1: frequency=12950.846441253516, q=6.192312603664413
+Filter 2: frequency=7685.877534152431, q=9.972378364313188
+Filter 3: frequency=19617.090068749076, q=6.886865646358878
+Filter 4: frequency=13016.17633983097, q=6.9156226326523065
+Filter 5: frequency=7790.650051102493, q=1.437455399721871
+Filter 6: frequency=14435.337037077752, q=5.301007792509686
+Filter 7: frequency=6218.632673667934, q=4.909770052434712
+Filter 8: frequency=17791.966930293023, q=9.347030807966872
+Filter 9: frequency=7168.748030247223, q=5.758145324224633
+Reward: 6.18748714865875
+________
+Original Reward:  -0.3623846769332886
+Audio Reset:
+MapexSteel_Oring2inch_Neumann_KM184_TP_Segment_64_peak_0.138.wav
+MapexSteel_Oring2inch_DPA_4099_BTM_Segment_64_peak_0.174.wav
+________
+Filter 0: frequency=11894.114603389942, q=3.4453211325206197
+Filter 1: frequency=7844.547630552662, q=8.913716084847444
+Filter 2: frequency=4558.608718796927, q=6.26955273239182
+Filter 3: frequency=1698.6265647760488, q=8.343177061768637
+Filter 4: frequency=15746.224183623894, q=2.4697574856302267
+Filter 5: frequency=17532.154931597863, q=0.679823544571424
+Filter 6: frequency=6735.618869702294, q=1.587766722258907
+Filter 7: frequency=9017.780545652753, q=7.983610275844213
+Filter 8: frequency=4628.2313356950735, q=0.6150108805376551
+Filter 9: frequency=8102.9457596341335, q=2.065279140641628
+Reward: -22.79536325688332
+________
+Original Reward:  -4.8336873054504395
+Audio Reset:
+MapexWalnut_Oring1inch_Neumann_KM184_TP_Segment_22_peak_0.424.wav
+MapexWalnut_Oring1inch_EV_RE20_BTM_Segment_22_peak_0.283.wav
+________
+Filter 0: frequency=1833.2458514700554, q=5.845290621269822
+Filter 1: frequency=5987.9487337220735, q=6.752749291767958
+Filter 2: frequency=4006.3185704849016, q=9.426919794014328
+Filter 3: frequency=7314.901161531675, q=1.1444032677452725
+Filter 4: frequency=12589.58086776339, q=9.278830075371888
+Filter 5: frequency=8818.735551221363, q=9.550445887538299
+Filter 6: frequency=10007.918357479188, q=4.309763386005848
+Filter 7: frequency=12411.864771267248, q=9.951455401829708
+Filter 8: frequency=18979.89462525655, q=4.654446879160051
+Filter 9: frequency=15159.422329259663, q=5.024484685327428
+Reward: 13.739715035031686
+________
+Original Reward:  -1.018910527229309
+Audio Reset:
+Premier_Moongel_Shure_SM7B_TP_Segment_6_peak_0.022.wav
+Premier_Moongel_AKG_451_BTM_Segment_6_peak_0.193.wav
+________
+Filter 0: frequency=15719.998300261874, q=4.205092908621141
+Filter 1: frequency=14694.981764338812, q=7.140314492098524
+Filter 2: frequency=18642.552538535296, q=1.2378330694809616
+Filter 3: frequency=14585.722039184662, q=9.281496893383142
+Filter 4: frequency=19359.165274694435, q=0.24559241915715596
+Filter 5: frequency=17275.529003106603, q=9.813830896656809
+Filter 6: frequency=19145.05938862705, q=1.5727637211017294
+Filter 7: frequency=19453.12370018264, q=8.910362001633155
+Filter 8: frequency=16451.029074310547, q=4.851880445697538
+Filter 9: frequency=4662.810934393291, q=8.038617729311248
+Reward: 4.742094469487147
+________
+Original Reward:  -2.2211999893188477
+Audio Reset:
+Tama5.5_BigFatSnare_Shure_SM7B_TP_Segment_72_peak_0.013.wav
+Tama5.5_BigFatSnare_AKG_414_BTM_Segment_72_peak_0.018.wav
+________
+Filter 0: frequency=18472.13259247372, q=2.734689695693697
+Filter 1: frequency=10787.909464291295, q=4.483253006847861
+Filter 2: frequency=18621.725973303477, q=0.5010560407655029
+Filter 3: frequency=14645.483789218084, q=6.1822951447950665
+Filter 4: frequency=586.7399949681508, q=7.2202757509847295
+Filter 5: frequency=339.51475588096804, q=7.603714923328638
+Filter 6: frequency=10264.919290776319, q=9.29813178589036
+Filter 7: frequency=1340.3282845470133, q=8.429041068162594
+Filter 8: frequency=1352.466375166686, q=3.5086687901608395
+Filter 9: frequency=8617.36866431771, q=9.664014599762295
+Reward: -100.0
+________
+Original Reward:  -1.8395589590072632
+Audio Reset:
+Mapex13_Oring1inch_Rode_NT55_TP_Segment_22_peak_0.677.wav
+Mapex13_Oring1inch_DPA_4090_BTM_Segment_22_peak_0.649.wav
+________
+Filter 0: frequency=5192.114571555227, q=2.4925895695340152
+Filter 1: frequency=17764.60404677041, q=2.3361073413315117
+Filter 2: frequency=2508.6030225889644, q=2.9544744943750185
+Filter 3: frequency=11730.738834958402, q=5.585495971515352
+Filter 4: frequency=16198.0213027373, q=5.64871192486124
+Filter 5: frequency=5782.655864335586, q=4.187673792540838
+Filter 6: frequency=16366.05699999879, q=6.30241397795556
+Filter 7: frequency=19182.371301094896, q=3.7571036698076408
+Filter 8: frequency=11061.177980215318, q=5.979849595970366
+Filter 9: frequency=16968.858341335697, q=1.5401880280466644
+Reward: 20.151836273698894
+________
+Original Reward:  -1.0692601203918457
+Audio Reset:
+Tama5.5_Oring1inch_Rode_M3_TP_Segment_8_peak_0.087.wav
+Tama5.5_Oring1inch_AKG_451_BTM_Segment_8_peak_0.238.wav
+________
+Filter 0: frequency=8142.076528227571, q=9.10859372045674
+Filter 1: frequency=880.4764335927194, q=8.244792173796869
+Filter 2: frequency=8319.373066677068, q=8.315059454253216
+Filter 3: frequency=218.8921249296933, q=3.7139569618068795
+Filter 4: frequency=1591.0281425694848, q=6.560884305732721
+Filter 5: frequency=5491.5049900191525, q=7.0562554995318845
+Filter 6: frequency=18877.152510302974, q=1.355489312386353
+Filter 7: frequency=17298.270342107466, q=0.6886951008433508
+Filter 8: frequency=7627.794756051571, q=4.354763205667909
+Filter 9: frequency=9787.213945732616, q=9.76697698716684
+Reward: -100.0
+________
+Original Reward:  -1.6780260801315308
+Audio Reset:
+Tama6.5_Oring1inch_Sennheiser_e614_TP_Segment_88_peak_0.029.wav
+Tama6.5_Oring1inch_DPA_4099_BTM_Segment_88_peak_0.074.wav
+________
+Filter 0: frequency=6190.970107130835, q=2.7713841764579215
+Filter 1: frequency=17265.14167970257, q=8.82494101010313
+Filter 2: frequency=10223.915980762033, q=3.50852773652702
+Filter 3: frequency=19898.448616255137, q=3.227841099140232
+Filter 4: frequency=3670.5933309527177, q=8.81297140091029
+Filter 5: frequency=16250.461254262855, q=6.712105115156377
+Filter 6: frequency=19169.10436292348, q=9.264574314422745
+Filter 7: frequency=14970.005095969047, q=8.620943954522009
+Filter 8: frequency=4957.991871635708, q=1.498340913320213
+Filter 9: frequency=13407.83574931242, q=7.174723512882052
+Reward: -12.223497876056939
+________
+---------------------------------
+| rollout/           |          |
+|    ep_len_mean     | 3.62     |
+|    ep_rew_mean     | -56.4    |
+| time/              |          |
+|    fps             | 34       |
+|    iterations      | 1        |
+|    time_elapsed    | 58       |
+|    total_timesteps | 2048     |
+---------------------------------
+-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.62        |
+|    ep_rew_mean          | -56.4       |
+| time/                   |             |
+|    fps                  | 31          |
+|    iterations           | 2           |
+|    time_elapsed         | 130         |
+|    total_timesteps      | 4096        |
+| train/                  |             |
+|    approx_kl            | 0.010312019 |
+|    clip_fraction        | 0.136       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -28.4       |
+|    explained_variance   | 8.67e-05    |
+|    learning_rate        | 0.0003      |
+|    loss                 | 4.18e+04    |
+|    n_updates            | 10          |
+|    policy_gradient_loss | -0.0134     |
+|    std                  | 1.01        |
+|    value_loss           | 8.1e+04     |
+-----------------------------------------
+-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.62        |
+|    ep_rew_mean          | -56.4       |
+| time/                   |             |
+|    fps                  | 30          |
+|    iterations           | 3           |
+|    time_elapsed         | 202         |
+|    total_timesteps      | 6144        |
+| train/                  |             |
+|    approx_kl            | 0.010365631 |
+|    clip_fraction        | 0.125       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -28.5       |
+|    explained_variance   | 1.79e-07    |
+|    learning_rate        | 0.0003      |
+|    loss                 | 4.27e+04    |
+|    n_updates            | 20          |
+|    policy_gradient_loss | -0.00539    |
+|    std                  | 1.01        |
+|    value_loss           | 8.85e+04    |
+-----------------------------------------
+-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.62        |
+|    ep_rew_mean          | -56.4       |
+| time/                   |             |
+|    fps                  | 29          |
+|    iterations           | 4           |
+|    time_elapsed         | 273         |
+|    total_timesteps      | 8192        |
+| train/                  |             |
+|    approx_kl            | 0.007948143 |
+|    clip_fraction        | 0.107       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -28.5       |
+|    explained_variance   | 1.79e-07    |
+|    learning_rate        | 0.0003      |
+|    loss                 | 4.47e+04    |
+|    n_updates            | 30          |
+|    policy_gradient_loss | -0.00662    |
+|    std                  | 1.01        |
+|    value_loss           | 9.17e+04    |
+-----------------------------------------
+------------------------------------------
+| rollout/                |              |
+|    ep_len_mean          | 3.62         |
+|    ep_rew_mean          | -56.4        |
+| time/                   |              |
+|    fps                  | 29           |
+|    iterations           | 5            |
+|    time_elapsed         | 344          |
+|    total_timesteps      | 10240        |
+| train/                  |              |
+|    approx_kl            | 0.0109507125 |
+|    clip_fraction        | 0.129        |
+|    clip_range           | 0.2          |
+|    entropy_loss         | -28.6        |
+|    explained_variance   | -2.38e-07    |
+|    learning_rate        | 0.0003       |
+|    loss                 | 3.8e+04      |
+|    n_updates            | 40           |
+|    policy_gradient_loss | -0.0066      |
+|    std                  | 1.01         |
+|    value_loss           | 8.35e+04     |
+------------------------------------------
+-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.62        |
+|    ep_rew_mean          | -56.4       |
+| time/                   |             |
+|    fps                  | 29          |
+|    iterations           | 6           |
+|    time_elapsed         | 416         |
+|    total_timesteps      | 12288       |
+| train/                  |             |
+|    approx_kl            | 0.008006867 |
+|    clip_fraction        | 0.113       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -28.6       |
+|    explained_variance   | -1.19e-07   |
+|    learning_rate        | 0.0003      |
+|    loss                 | 3.5e+04     |
+|    n_updates            | 50          |
+|    policy_gradient_loss | -0.00515    |
+|    std                  | 1.01        |
+|    value_loss           | 7.16e+04    |
+-----------------------------------------
+-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.62        |
+|    ep_rew_mean          | -56.4       |
+| time/                   |             |
+|    fps                  | 29          |
+|    iterations           | 7           |
+|    time_elapsed         | 488         |
+|    total_timesteps      | 14336       |
+| train/                  |             |
+|    approx_kl            | 0.008182018 |
+|    clip_fraction        | 0.13        |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -28.6       |
+|    explained_variance   | 5.96e-08    |
+|    learning_rate        | 0.0003      |
+|    loss                 | 4.39e+04    |
+|    n_updates            | 60          |
+|    policy_gradient_loss | -0.0071     |
+|    std                  | 1.01        |
+|    value_loss           | 8.58e+04    |
+-----------------------------------------

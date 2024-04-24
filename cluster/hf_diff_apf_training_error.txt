@@ -17,9 +17,3 @@ See 'conda init --help' for more information and options.
 IMPORTANT: You may need to close and restart your shell after running 'conda init'.
 
 
-srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** JOB 1069 ON gpu1-cluster3 CANCELLED AT 2024-04-24T09:49:03 ***
-slurmstepd: error: *** STEP 1069.0 ON gpu1-cluster3 CANCELLED AT 2024-04-24T09:49:03 ***
-srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** JOB 1068 ON gpu1-cluster3 CANCELLED AT 2024-04-24T10:03:47 ***
-slurmstepd: error: *** STEP 1068.0 ON gpu1-cluster3 CANCELLED AT 2024-04-24T10:03:47 ***
