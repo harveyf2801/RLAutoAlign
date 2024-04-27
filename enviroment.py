@@ -324,9 +324,9 @@ def check_gym_env(env):
 # Test the environment
 if __name__ == "__main__":
 
-    # env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
+    env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
     
-    env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
+    # env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
     check_gym_env(env)
 
     # obs, info = env.reset()
