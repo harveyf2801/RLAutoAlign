@@ -38,7 +38,7 @@ def make_env(env_id, i, seed=0):
         # Creating the enviroment        
         env = gym.make(
                     id=env_id,
-                    audio_dir='C:/Users/hfret/Downloads/SDDS',
+                    audio_dir='/home/',
                     render_mode='text')
         env = Monitor(TimeLimitWrapper(env, max_steps=20_000),
                       filename="tmp/TestMonitor")
