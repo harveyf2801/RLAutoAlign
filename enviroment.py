@@ -232,7 +232,7 @@ class AllPassFilterEnv(gym.Env):
         # Reset the environment to its initial state
         self.input_df, self.target_df = self._choose_random_TB_pair() # selecting a random top and bottom snare
         self.input_sig, self.target_sig = self._load_audio_files(self.input_df.iloc[0]['FileName'],
-                                                                 self.target_df.iloc[0]['FileName']) # load audio files with checks
+                                                                self.target_df.iloc[0]['FileName']) # load audio files with checks
 
         self.original_loss = abs(float(self.loss(self.input_sig, self.target_sig)))
         print('Original Reward: ', self.original_loss)
