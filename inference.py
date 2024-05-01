@@ -38,7 +38,7 @@ def make_env(env_id, i, seed=0):
         # Creating the enviroment        
         env = gym.make(
                     id=env_id,
-                    audio_dir='/home/',
+                    audio_dir='/home/hf1/Documents/soundfiles/SDDS_segmented_Allfiles/',
                     render_mode='text')
         env = Monitor(TimeLimitWrapper(env, max_steps=20_000),
                       filename="tmp/TestMonitor")
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
 
-    seed = 0 # random seed for reproducibility
+    seed = 42 # random seed for reproducibility
     env_name = "AllPassFilterEnv-v0.2"
 
     # Creating multiple enviroments
@@ -71,22 +71,27 @@ if __name__ == "__main__":
     vec_env = make_env(env_name, 0, seed)()
 
     # Creating the Proximal Policy Optimization network
-    model = PPO("MlpPolicy", vec_env, seed=seed, verbose=1, tensorboard_log='./board/')
+    model = PPO("MlpPolicy", vec_env, seed=seed, verbose=1)
     
     # Load the pre-trained model
-    model_path = Path(models_dir, "ppo_apf_3900000_steps.zip")
+    model_path = Path(models_dir, "checkpoint/ppo_apf_3900000_steps.zip")
     model.load(model_path)
 
     # Test the model on the environment
     import tqdm
-    TOTAL_TIMESTEPS = 10
+    TOTAL_TIMESTEPS = 31952
     obs, info = vec_env.reset()
     with tqdm.tqdm(total=TOTAL_TIMESTEPS) as pbar:
         for i in range(TOTAL_TIMESTEPS):
             action, _ = model.predict(obs)
             obs, reward, terminated, truncated, information = vec_env.step(action)
-            vec_env.render()
+            vec_env.reset()
             pbar.update(1)
+    
+    for loss_key, loss in vec_env.total_loss.items():
+        print(loss_key, loss/vec_env.total_steps)
+    for loudness_key, loudness_val in vec_env.total_loudness.items():
+        print(loudness_key, loudness_val/vec_env.total_steps)
+    for quality_key, quality_val in vec_env.total_quality.items():
+        print(quality_key, quality_val/vec_env.total_steps)
     vec_env.close()
-
-    #

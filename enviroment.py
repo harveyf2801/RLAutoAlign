@@ -17,6 +17,9 @@ from Filters.AllPassBand import AllPassBand
 from Filters.FilterChain import FilterChain
 from Visualisation import Visualisation
 
+from losses import MultiResolutionSTFTLoss
+from evaluation_metrics import mse_loss, db_rms, dB_peak, thdn
+
 
 class AllPassFilterEnv(gym.Env):
     """
@@ -122,14 +125,38 @@ class AllPassFilterEnv(gym.Env):
         self.reward = None
         self.original_loss = None
 
+        self.total_steps = 0
+
+        # Metrics
+        self.losses = {
+            'MR-STFT': MultiResolutionSTFTLoss(),
+            'MSE': mse_loss
+        }
+
+        self.loudness = {
+            'RMS': db_rms,
+            'Peak': dB_peak
+        }
+
+        self.quality = {
+            'THDN': thdn
+        }
+
+        self.total_loss = {'MR-STFT': 0, 'MSE': 0}
+        self.total_loudness = {'RMS': 0, 'Peak': 0}
+        self.total_quality = {'THDN': 0}
+
         self._reset_audio()
     
     def _choose_random_TB_pair(self):
         # Selecting a random class
         class_id = self.np_random.integers(0, self.max_class_id)
         # Selecting a random top and bottom snare record from annotations
-        input_df = self.annotations.query(f'(ClassID == {class_id}) & (Position == "TP")').sample(n=1)
-        target_df = self.annotations.query(f'(ClassID == {class_id}) & (Position == "BTM")').sample(n=1)
+        # input_df = self.annotations.query(f'(ClassID == {class_id}) & (Position == "SHL")').sample(n=2)
+        # target_df = self.annotations.query(f'(ClassID == {class_id}) & (Position == "SHL")').sample(n=1)
+        df = self.annotations.query(f'(ClassID == {class_id}) & (Position == "SHL")').sample(n=2)
+        input_df = df.iloc[0]
+        target_df = df.iloc[1]
 
         return input_df, target_df
     
@@ -219,8 +246,18 @@ class AllPassFilterEnv(gym.Env):
         self._update_filter_chain(action)
         filtered_sig = self._get_filtered_signal()
 
+        mix = (self.target_sig + filtered_sig) / 2
+        for loss_key, loss in self.losses.items():
+            self.total_loss[loss_key] += float(loss(self.target_sig, filtered_sig))
+        for loudness_key, loudness_func in self.loudness.items():
+            self.total_loudness[loudness_key] += loudness_func(mix)
+        for quality_key, quality_func in self.quality.items():
+            self.total_quality[quality_key] += quality_func(self.target_sig, filtered_sig)
+
+        self.total_steps += 1
+
         # Compute the rms difference for the reward
-        self.reward = self._get_reward(filtered_sig, self.target_sig)
+        self.reward = 1#self._get_reward(filtered_sig, self.target_sig)
         # terminated = bool((reward > ? or reward < ?)
 
         # self.render()
@@ -231,13 +268,13 @@ class AllPassFilterEnv(gym.Env):
     def _reset_audio(self):
         # Reset the environment to its initial state
         self.input_df, self.target_df = self._choose_random_TB_pair() # selecting a random top and bottom snare
-        self.input_sig, self.target_sig = self._load_audio_files(self.input_df.iloc[0]['FileName'],
-                                                                self.target_df.iloc[0]['FileName']) # load audio files with checks
+        self.input_sig, self.target_sig = self._load_audio_files(self.input_df['FileName'],
+                                                                self.target_df['FileName']) # load audio files with checks
 
         self.original_loss = abs(float(self.loss(self.input_sig, self.target_sig)))
-        print('Original Reward: ', self.original_loss)
+        # print('Original Reward: ', self.original_loss)
 
-        print(f"Audio Reset:\n{self.input_df.iloc[0]['FileName']}\n{self.target_df.iloc[0]['FileName']}")
+        # print(f"Audio Reset:\n{self.input_df['FileName']}\n{self.target_df['FileName']}")
 
     def reset(self, seed=None, options=None):
         # To seed self.np_random
@@ -253,7 +290,7 @@ class AllPassFilterEnv(gym.Env):
         self.reward = self._get_reward(filtered_sig, self.target_sig)
 
         info = self._get_info()
-        self.render()
+        # self.render()
 
         return observation, info
 
@@ -324,7 +361,7 @@ def check_gym_env(env):
 # Test the environment
 if __name__ == "__main__":
 
-    env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
+    env = AllPassFilterEnv('/home/hf1/Documents/soundfiles/SDDS_segmented_Allfiles')
     
     # env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
     check_gym_env(env)

@@ -66,7 +66,7 @@ if __name__ == '__main__':
 
     for i in range(0, 10):
         class_id = np.random.randint(0, max_class_id)
-        target = df.query(f'(ClassID == {class_id}) & (Position == "TP")').sample(n=1)
+        target = df.query(f'(ClassID == {class_id}) & (Position == "SHL")').sample(n=1)
         input = df.query(f'(ClassID == {class_id}) & (Position == "BTM")').sample(n=1)
         print(target)
         print(input)
