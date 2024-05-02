@@ -13,3 +13,8 @@ no change     /home/hf1/.bashrc
 No action taken.
 Using cuda device
 Wrapping the env in a DummyVecEnv.
+MR-STFT 0.0
+MSE 0.0
+RMS 0.0
+Peak 0.0
+THDN 78.92061093056543
