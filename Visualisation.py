@@ -20,7 +20,7 @@ class Visualisation:
         self.fps = fps
 
         if self.mode == 'graph_filters':
-            self.show_mag = False
+            self.show_mag = True
             self.show_phase = True
 
             # Create a figure on and subplot axis and setting a title

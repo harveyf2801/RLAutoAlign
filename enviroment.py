@@ -74,7 +74,7 @@ class AllPassFilterEnv(gym.Env):
     * v0.2: Started using the inverse MR-STFT loss as the reward and for polarity detection.
     """
 
-    metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 0.5}
+    metadata = {"render_modes": ["text", "graph_filters", "observation"], "render_fps": 2}
 
     def __init__(self, audio_dir, render_mode='text'):
         super(AllPassFilterEnv, self).__init__()
@@ -104,7 +104,7 @@ class AllPassFilterEnv(gym.Env):
         assert render_mode is None or render_mode in self.metadata["render_modes"]
         self.render_mode = render_mode
         if (self.render_mode != 'text'):
-            self.visualisation = Visualisation("DRL Visuals", self.render_mode, fs=self.fs, fps=self.metadata["render_fps"])
+            self.visualisation = Visualisation("Observation", self.render_mode, fs=self.fs, fps=self.metadata["render_fps"])
 
         # Define action and observation spaces
         self.action_space = spaces.Box(low=-1, high=1, shape=(self.n_filterbands * 2,), dtype=np.float32)
@@ -324,7 +324,7 @@ def check_gym_env(env):
 # Test the environment
 if __name__ == "__main__":
 
-    env = AllPassFilterEnv('soundfiles/SDDS_segmented_Allfiles')
+    env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS', render_mode='observation')
     
     # env = AllPassFilterEnv('C:/Users/hfret/Downloads/SDDS')
     check_gym_env(env)

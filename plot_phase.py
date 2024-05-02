@@ -43,7 +43,7 @@ S_INPUT, phi_INPUT = get_magnitude_and_phase_stft(-INPUT if POL_INVERT else INPU
 S_TARGET, phi_TARGET = get_magnitude_and_phase_stft(TARGET)
 
 # Compute the phase difference between the two audio files
-mag_sum = S_INPUT + S_TARGET
+mag_sum = (S_INPUT + S_TARGET)
 phi_diff = phi_INPUT - phi_TARGET
 
 print(mag_sum.shape)
